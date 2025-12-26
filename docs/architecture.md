@@ -4,7 +4,7 @@ This document provides a high‑level overview of the Station‑2100 architectur
 
 ## Current Phase: UI-First Scaffold
 
-**Status:** Dashboard UI is complete with dummy data. Backend services, database, and authentication are not yet implemented.
+**Status:** Dashboard UI is complete with placeholder/mocked data. Backend services, database, and authentication are not yet implemented. All data displayed in charts and components is static dummy data for UI demonstration purposes only.
 
 ### What's Implemented
 
@@ -49,7 +49,7 @@ This document provides a high‑level overview of the Station‑2100 architectur
 
 ## Core Modules
 
-All modules have UI pages, but no backend implementation yet:
+All modules have UI pages with placeholder content. **All data is mocked/static** - no backend implementation yet:
 
 1. **Dashboard** – Overview with KPI cards and module summaries
 2. **Inventory** – Stock tracking and batch management

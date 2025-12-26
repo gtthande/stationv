@@ -14,7 +14,7 @@ Station‑2100 is a modern aviation maintenance and inventory management system 
 - ⏳ API endpoints (not yet implemented)
 - ⏳ Authentication (not yet implemented)
 
-This is a **UI-first scaffold**. The dashboard and module pages are visually complete with dummy data, but backend services, database connections, and authentication are intentionally not implemented yet.
+This is a **UI-first scaffold**. The dashboard and module pages are visually complete with placeholder/mocked data. All charts, metrics, and module summaries display static dummy data for UI demonstration purposes. Backend services, database connections, and authentication are intentionally not implemented yet.
 
 ## Project Structure
 

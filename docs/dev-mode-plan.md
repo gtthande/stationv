@@ -1,6 +1,8 @@
 # Station-2100 Development Mode Plan
 
-## Phase 1: Architecture ✅
+## Phase 1: UI Scaffolding ✅ (Current)
+
+**Current Phase:** UI-first dashboard scaffold with dummy data. All charts and module pages display static placeholder data.
 
 ### Current Architecture State
 
@@ -10,6 +12,7 @@
 - Tailwind CSS for styling
 - shadcn UI components (installed, not configured)
 - Dashboard layout with sidebar navigation
+- **All data is placeholder/mocked** - charts and components use static dummy data
 
 **Data Layer**:
 - MySQL schema defined in `sql/schema.sql`
