@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main className="p-6">
@@ -6,6 +8,9 @@ export default function Home() {
         Welcome to your aviation maintenance & inventory hub.  Use the navigation
         in the dashboard after logging in to access all modules.
       </p>
+      <Link href="/dashboard" className="mt-6 inline-block underline">
+        Go to dashboard
+      </Link>
     </main>
   );
 }
