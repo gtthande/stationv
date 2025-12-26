@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Fintech color palette - light mode */
+    --background: 240 5% 98%; /* #f7f7fa equivalent */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* Pure white */
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 217 91% 60%; /* Muted blue #4f8ef7 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 217 91% 60%; /* Muted blue for accents */
+    --accent-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%; /* Softer border */
+    --ring: 217 91% 60%;
+    /* Fintech accent colors */
+    --accent-secondary: 270 91% 75%; /* Soft purple */
+    --accent-teal: 173 80% 40%; /* Soft teal */
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  body {
+    @apply text-foreground;
+    /* Fintech soft background - very light grey */
+    background: #f7f7fa;
+  }
+
+  .dark body {
+    /* Dark mode: slightly lifted surface, not pure black */
+    background: linear-gradient(to bottom, hsl(222.2 84% 6%), hsl(222.2 84% 4.9%));
+  }
+}
+
+/* Custom global styles for Station‑2100 can be added here */

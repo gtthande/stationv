@@ -1,0 +1,392 @@
+// Prisma schema for Station-2100
+// Generated from sql/schema.sql
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// SECURITY / RBAC
+
+model User {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  username      String    @unique @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  fullName      String    @map("full_name") @db.VarChar(255)
+  passwordHash  String?   @map("password_hash") @db.VarChar(255)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  userRoles     UserRole[]
+  batchesReceived Batch[] @relation("BatchesReceivedBy")
+  batchesApproved Batch[] @relation("BatchesApprovedBy")
+  jobCardsOpened JobCard[] @relation("JobCardsOpenedBy")
+  jobCardsClosed JobCard[] @relation("JobCardsClosedBy")
+  jobCardLabour JobCardLabour[]
+  jobCardPartsIssued JobCardPart[] @relation("JobCardPartsIssuedBy")
+  jobCardPartsReceived JobCardPart[] @relation("JobCardPartsReceivedBy")
+  inventoryTransactionsCreated InventoryTransaction[] @relation("InventoryTransactionsCreatedBy")
+  inventoryTransactionsApproved InventoryTransaction[] @relation("InventoryTransactionsApprovedBy")
+
+  @@map("users")
+}
+
+model Role {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.VarChar(255)
+
+  // Relations
+  userRoles   UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String    @unique @db.VarChar(100)
+  description String?   @db.VarChar(255)
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId    BigInt @map("user_id") @db.UnsignedBigInt
+  roleId    BigInt @map("role_id") @db.UnsignedBigInt
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       BigInt @map("role_id") @db.UnsignedBigInt
+  permissionId BigInt @map("permission_id") @db.UnsignedBigInt
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// MASTER DATA
+
+model Warehouse {
+  id        BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name      String    @db.VarChar(150)
+  code      String    @unique @db.VarChar(50)
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  locations Location[]
+  batches   Batch[]
+  inventoryTransactionsFrom InventoryTransaction[] @relation("InventoryTransactionsFromWarehouse")
+  inventoryTransactionsTo InventoryTransaction[] @relation("InventoryTransactionsToWarehouse")
+
+  @@map("warehouses")
+}
+
+model Location {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  warehouseId BigInt    @map("warehouse_id") @db.UnsignedBigInt
+  binCode     String?   @map("bin_code") @db.VarChar(50)
+  rackCode    String?   @map("rack_code") @db.VarChar(50)
+  rowCode     String?   @map("row_code") @db.VarChar(50)
+  isActive    Boolean   @default(true) @map("is_active")
+
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  batches     Batch[]
+
+  @@map("locations")
+}
+
+model Supplier {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name          String    @db.VarChar(255)
+  code          String?   @unique @db.VarChar(100)
+  contactPerson String?   @map("contact_person") @db.VarChar(255)
+  email         String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(100)
+  address       String?   @db.Text
+  notes         String?   @db.Text
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  batches       Batch[]
+
+  @@map("suppliers")
+}
+
+model Customer {
+  id            BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name          String    @db.VarChar(255)
+  code          String?   @unique @db.VarChar(100)
+  contactPerson String?   @map("contact_person") @db.VarChar(255)
+  email         String?   @db.VarChar(255)
+  phone         String?   @db.VarChar(100)
+  address       String?   @db.Text
+  notes         String?   @db.Text
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  jobCards      JobCard[]
+
+  @@map("customers")
+}
+
+model Product {
+  id                    BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  partNumber            String    @unique @map("part_number") @db.VarChar(150)
+  name                  String    @db.VarChar(255)
+  description           String?   @db.Text
+  unitOfMeasure         String    @map("unit_of_measure") @db.VarChar(20)
+  defaultMarkupPercent  Decimal   @default(0.00) @map("default_markup_percent") @db.Decimal(5, 2)
+  isSerialized          Boolean   @default(false) @map("is_serialized")
+  isConsumable          Boolean   @default(false) @map("is_consumable")
+  isOwnerSuppliedAllowed Boolean   @default(true) @map("is_owner_supplied_allowed")
+  minStockLevel         Decimal?  @map("min_stock_level") @db.Decimal(18, 4)
+  maxStockLevel         Decimal?  @map("max_stock_level") @db.Decimal(18, 4)
+  isActive              Boolean   @default(true) @map("is_active")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  batches               Batch[]
+  productImages         ProductImage[]
+  jobCardParts          JobCardPart[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  productId BigInt            @map("product_id") @db.UnsignedBigInt
+  type      ProductImageType
+  imageUrl  String            @map("image_url") @db.VarChar(1000)
+  isPrimary Boolean           @default(false) @map("is_primary")
+
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+enum ProductImageType {
+  TECHNICAL
+  APPEARANCE
+}
+
+model StockAdjustmentReason {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  code        String    @unique @db.VarChar(100)
+  description String    @db.VarChar(255)
+
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("stock_adjustment_reasons")
+}
+
+// INVENTORY CORE
+
+model Batch {
+  id                  BigInt        @id @default(autoincrement()) @db.UnsignedBigInt
+  productId           BigInt        @map("product_id") @db.UnsignedBigInt
+  warehouseId         BigInt        @map("warehouse_id") @db.UnsignedBigInt
+  locationId          BigInt?       @map("location_id") @db.UnsignedBigInt
+  batchCode           String        @unique @map("batch_code") @db.VarChar(150)
+  supplierId          BigInt?       @map("supplier_id") @db.UnsignedBigInt
+  referenceDoc        String?       @map("reference_doc") @db.VarChar(255)
+  receivedQuantity    Decimal       @map("received_quantity") @db.Decimal(18, 4)
+  remainingQuantity   Decimal       @map("remaining_quantity") @db.Decimal(18, 4)
+  currency            String        @default("USD") @db.VarChar(10)
+  fxRate              Decimal       @default(1.000000) @map("fx_rate") @db.Decimal(18, 6)
+  landedCostPerUnit   Decimal       @default(0.0000) @map("landed_cost_per_unit") @db.Decimal(18, 4)
+  fittingPricePerUnit Decimal       @default(0.0000) @map("fitting_price_per_unit") @db.Decimal(18, 4)
+  status              BatchStatus   @default(PENDING)
+  expiryDate          DateTime?     @map("expiry_date") @db.Date
+  receivedBy          BigInt        @map("received_by") @db.UnsignedBigInt
+  approvedBy          BigInt?       @map("approved_by") @db.UnsignedBigInt
+  receivedAt          DateTime      @default(now()) @map("received_at")
+  approvedAt          DateTime?     @map("approved_at")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  product             Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  warehouse           Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Restrict)
+  location            Location?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  supplier            Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  receivedByUser      User          @relation("BatchesReceivedBy", fields: [receivedBy], references: [id], onDelete: Restrict)
+  approvedByUser      User?         @relation("BatchesApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+  jobCardParts        JobCardPart[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@map("batches")
+}
+
+enum BatchStatus {
+  PENDING
+  APPROVED
+  QUARANTINED
+  DEPLETED
+}
+
+// JOB CARDS
+
+model JobCard {
+  id              BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  jobNumber       String          @unique @map("job_number") @db.VarChar(100)
+  customerId      BigInt          @map("customer_id") @db.UnsignedBigInt
+  aircraftReg     String?         @map("aircraft_reg") @db.VarChar(100)
+  assetIdentifier String?         @map("asset_identifier") @db.VarChar(150)
+  title           String          @db.VarChar(255)
+  description     String?         @db.Text
+  status          JobCardStatus  @default(OPEN)
+  ownerReference  String?         @map("owner_reference") @db.VarChar(150)
+  invoiceNumber   String?         @map("invoice_number") @db.VarChar(150)
+  openedBy        BigInt          @map("opened_by") @db.UnsignedBigInt
+  closedBy        BigInt?         @map("closed_by") @db.UnsignedBigInt
+  openedAt        DateTime        @default(now()) @map("opened_at")
+  closedAt        DateTime?       @map("closed_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  openedByUser    User            @relation("JobCardsOpenedBy", fields: [openedBy], references: [id], onDelete: Restrict)
+  closedByUser    User?           @relation("JobCardsClosedBy", fields: [closedBy], references: [id], onDelete: SetNull)
+  jobCardLabour   JobCardLabour[]
+  jobCardParts    JobCardPart[]
+
+  @@map("job_cards")
+}
+
+enum JobCardStatus {
+  OPEN
+  IN_PROGRESS
+  AWAITING_APPROVAL
+  CLOSED
+}
+
+model JobCardLabour {
+  id              BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  jobCardId       BigInt    @map("job_card_id") @db.UnsignedBigInt
+  engineerId      BigInt    @map("engineer_id") @db.UnsignedBigInt
+  labourCode      String?   @map("labour_code") @db.VarChar(100)
+  description     String    @db.Text
+  hours           Decimal   @default(0.00) @db.Decimal(18, 2)
+  ratePerHour     Decimal   @default(0.0000) @map("rate_per_hour") @db.Decimal(18, 4)
+  totalCostLocal  Decimal   @default(0.0000) @map("total_cost_local") @db.Decimal(18, 4)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  jobCard         JobCard   @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+  engineer        User      @relation(fields: [engineerId], references: [id], onDelete: Restrict)
+
+  @@map("job_card_labour")
+}
+
+model JobCardPart {
+  id                  BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  jobCardId           BigInt              @map("job_card_id") @db.UnsignedBigInt
+  sourceType          JobCardPartSourceType @map("source_type")
+  batchId             BigInt?             @map("batch_id") @db.UnsignedBigInt
+  productId           BigInt?             @map("product_id") @db.UnsignedBigInt
+  descriptionOverride String?             @map("description_override") @db.Text
+  quantity            Decimal             @default(0.0000) @db.Decimal(18, 4)
+  unitCostLocal       Decimal             @default(0.0000) @map("unit_cost_local") @db.Decimal(18, 4)
+  unitPriceLocal      Decimal             @default(0.0000) @map("unit_price_local") @db.Decimal(18, 4)
+  totalCostLocal      Decimal             @default(0.0000) @map("total_cost_local") @db.Decimal(18, 4)
+  totalPriceLocal     Decimal             @default(0.0000) @map("total_price_local") @db.Decimal(18, 4)
+  isOwnerSupplied     Boolean             @default(false) @map("is_owner_supplied")
+  issuedBy            BigInt?             @map("issued_by") @db.UnsignedBigInt
+  receivedBy          BigInt?             @map("received_by") @db.UnsignedBigInt
+  lineOrder           Int                 @default(0) @map("line_order")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  jobCard             JobCard             @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+  batch               Batch?              @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  product             Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  issuedByUser        User?               @relation("JobCardPartsIssuedBy", fields: [issuedBy], references: [id], onDelete: SetNull)
+  receivedByUser      User?               @relation("JobCardPartsReceivedBy", fields: [receivedBy], references: [id], onDelete: SetNull)
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([jobCardId])
+  @@map("job_card_parts")
+}
+
+enum JobCardPartSourceType {
+  MAIN_WAREHOUSE
+  CONSUMABLE
+  OWNER_SUPPLIED
+}
+
+// INVENTORY TRANSACTIONS
+
+model InventoryTransaction {
+  id                      BigInt                    @id @default(autoincrement()) @db.UnsignedBigInt
+  batchId                 BigInt                    @map("batch_id") @db.UnsignedBigInt
+  transactionType         InventoryTransactionType  @map("transaction_type")
+  direction               InventoryTransactionDirection
+  quantity                Decimal                   @db.Decimal(18, 4)
+  unitCostLocal           Decimal                   @default(0.0000) @map("unit_cost_local") @db.Decimal(18, 4)
+  totalCostLocal          Decimal                   @default(0.0000) @map("total_cost_local") @db.Decimal(18, 4)
+  jobCardPartId           BigInt?                   @map("job_card_part_id") @db.UnsignedBigInt
+  fromWarehouseId         BigInt?                   @map("from_warehouse_id") @db.UnsignedBigInt
+  toWarehouseId           BigInt?                   @map("to_warehouse_id") @db.UnsignedBigInt
+  stockAdjustmentReasonId BigInt?                   @map("stock_adjustment_reason_id") @db.UnsignedBigInt
+  createdBy               BigInt                    @map("created_by") @db.UnsignedBigInt
+  approvedBy              BigInt?                   @map("approved_by") @db.UnsignedBigInt
+  status                  InventoryTransactionStatus @default(PENDING)
+  notes                   String?                   @db.Text
+  transactionDate         DateTime                  @default(now()) @map("transaction_date")
+  createdAt               DateTime                  @default(now()) @map("created_at")
+  updatedAt               DateTime                  @updatedAt @map("updated_at")
+
+  batch                   Batch                     @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  jobCardPart             JobCardPart?              @relation(fields: [jobCardPartId], references: [id], onDelete: SetNull)
+  fromWarehouse           Warehouse?                @relation("InventoryTransactionsFromWarehouse", fields: [fromWarehouseId], references: [id], onDelete: SetNull)
+  toWarehouse             Warehouse?                @relation("InventoryTransactionsToWarehouse", fields: [toWarehouseId], references: [id], onDelete: SetNull)
+  stockAdjustmentReason   StockAdjustmentReason?     @relation(fields: [stockAdjustmentReasonId], references: [id], onDelete: SetNull)
+  createdByUser           User                      @relation("InventoryTransactionsCreatedBy", fields: [createdBy], references: [id], onDelete: Restrict)
+  approvedByUser          User?                     @relation("InventoryTransactionsApprovedBy", fields: [approvedBy], references: [id], onDelete: SetNull)
+
+  @@index([batchId])
+  @@index([transactionDate, status])
+  @@map("inventory_transactions")
+}
+
+enum InventoryTransactionType {
+  RECEIPT
+  ISSUE
+  ADJUSTMENT
+  TRANSFER
+}
+
+enum InventoryTransactionDirection {
+  IN
+  OUT
+}
+
+enum InventoryTransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
