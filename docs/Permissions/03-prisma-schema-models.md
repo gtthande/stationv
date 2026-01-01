@@ -1,3 +1,25 @@
+# Prompt 03: Prisma Schema (Models Only)
+
+## Objective
+Define the complete database schema for the Admin & Permissions system WITHOUT running migrations.
+
+## Task
+Add all 4 models to `prisma/schema.prisma`: User, Permission, UserPermission, and AuditLog.
+
+## Prerequisites
+- ✅ Prompt 01 completed (Guardrails established)
+- ✅ Prompt 02 completed (Prisma configured, .env exists)
+
+## Instructions for Cursor
+
+### Update prisma/schema.prisma
+
+Replace the entire file with this complete schema:
+
+```prisma
+// Prisma Schema for Station-2100
+// Phase 1: Admin & Permissions System
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -5,31 +27,6 @@ generator client {
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-}
-
-// ═══════════════════════════════════════════════════════════
-// EXISTING TABLE (DO NOT MODIFY)
-// ═══════════════════════════════════════════════════════════
-
-model customers {
-  id             String   @id @db.Char(36)
-  user_id        String   @db.Char(36)
-  name           String   @db.VarChar(255)
-  email          String?  @db.VarChar(255)
-  phone          String?  @db.VarChar(20)
-  address        String?  @db.Text
-  city           String?  @db.VarChar(100)
-  state          String?  @db.VarChar(100)
-  zip_code       String?  @db.VarChar(20)
-  country        String?  @db.VarChar(100)
-  contact_person String?  @db.VarChar(255)
-  tail_number    String?  @db.VarChar(20)
-  aircraft_type  String?  @db.VarChar(100)
-  notes          String?  @db.Text
-  created_at     DateTime @default(now()) @db.DateTime(0)
-  updated_at     DateTime @db.DateTime(0)
-
-  @@index([user_id], map: "customers_user_id_fkey")
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -120,3 +117,60 @@ model AuditLog {
   @@index([timestamp])
   @@map("audit_logs")
 }
+```
+
+## Important Notes
+
+### Field Descriptions
+
+**User Model:**
+- `id`: UUID primary key
+- `email`: Unique login identifier
+- `password`: bcrypt hashed (NEVER plain text)
+- `isActive`: Soft delete flag
+- `isAdmin`: Super admin bypass flag
+- `lastLogin`: Track user activity
+
+**Permission Model:**
+- `key`: Dot-notation (e.g., `inventory.view`)
+- `module`: Groups permissions (Inventory, JobCard, Admin, etc.)
+- `category`: Optional grouping (Read, Write, Approve, Delete)
+
+**UserPermission Model:**
+- Junction table (many-to-many)
+- `@@unique([userId, permissionId])`: One permission per user (no duplicates)
+- `onDelete: Cascade`: If user/permission deleted, remove link
+
+**AuditLog Model:**
+- `userId`: Nullable (system actions have no user)
+- `details`: JSON for flexible context
+- `action`: Dot-notation (e.g., `user.created`, `permission.granted`)
+
+### What NOT to Do
+
+❌ Do NOT run `prisma migrate` yet
+❌ Do NOT generate Prisma client yet  
+❌ Do NOT create seed file yet
+❌ Do NOT modify the `customers` table
+
+## Verification Checklist
+
+- [ ] `prisma/schema.prisma` has all 4 models defined
+- [ ] All models have correct `@@map` directives
+- [ ] All indexes are in place
+- [ ] Cascade deletes configured on UserPermission
+- [ ] No syntax errors in schema (VS Code should show no red squiggles)
+- [ ] File saved
+
+## Expected State
+
+At this point:
+- ✅ Schema is defined
+- ✅ No tables created yet
+- ✅ No migrations run
+- ✅ No Prisma client generated
+- ✅ Ready for Prisma client singleton (Prompt 04)
+
+---
+
+**Next Step:** Prompt 04 - Prisma Client Singleton

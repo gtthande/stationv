@@ -54,3 +54,9 @@
 }
 
 /* Custom global styles for Station‑2100 can be added here */
+
+/* Accessibility: Focus indicators */
+*:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+}

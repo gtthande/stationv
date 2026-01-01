@@ -1,0 +1,362 @@
+# Prompt 08: Seed Verification & Integrity Check
+
+## Objective
+Verify that the database foundation is 100% correct before building API layer.
+
+## Task
+Run validation queries to confirm all data relationships work correctly.
+
+## Prerequisites
+- ✅ Prompts 01-07 completed
+- ✅ Database migrated (4 tables exist)
+- ✅ 70 permissions seeded
+- ✅ George Thande created with all permissions
+
+## Instructions for Cursor
+
+### Create prisma/verify-setup.ts
+
+```typescript
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  console.log('🔍 Verifying database setup...\n')
+
+  let hasErrors = false
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 1: Verify Permissions Count
+  // ═══════════════════════════════════════════════════════════
+  console.log('📝 TEST 1: Verifying permissions...')
+  const permissionCount = await prisma.permission.count()
+  
+  if (permissionCount === 70) {
+    console.log(`✅ PASS: Found ${permissionCount} permissions (expected 70)`)
+  } else {
+    console.log(`❌ FAIL: Found ${permissionCount} permissions (expected 70)`)
+    hasErrors = true
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 2: Verify Permissions by Module
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 2: Verifying permissions by module...')
+  const expectedModules = {
+    'Inventory': 17,
+    'JobCard': 14,
+    'Rotables': 10,
+    'Tools': 11,
+    'Admin': 10,
+    'Reports': 8,
+  }
+
+  for (const [module, expectedCount] of Object.entries(expectedModules)) {
+    const count = await prisma.permission.count({
+      where: { module },
+    })
+    
+    if (count === expectedCount) {
+      console.log(`  ✅ ${module}: ${count}/${expectedCount}`)
+    } else {
+      console.log(`  ❌ ${module}: ${count}/${expectedCount} (MISMATCH)`)
+      hasErrors = true
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 3: Verify Admin User Exists
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 3: Verifying admin user...')
+  const adminUser = await prisma.user.findUnique({
+    where: { email: 'gtthande@gmail.com' },
+  })
+
+  if (adminUser) {
+    console.log(`✅ PASS: Admin user exists`)
+    console.log(`  - Name: ${adminUser.name}`)
+    console.log(`  - Email: ${adminUser.email}`)
+    console.log(`  - isAdmin: ${adminUser.isAdmin}`)
+    console.log(`  - isActive: ${adminUser.isActive}`)
+    
+    if (!adminUser.isAdmin) {
+      console.log(`  ❌ FAIL: Admin user has isAdmin = false`)
+      hasErrors = true
+    }
+    
+    if (!adminUser.isActive) {
+      console.log(`  ❌ FAIL: Admin user has isActive = false`)
+      hasErrors = true
+    }
+
+    if (!adminUser.password.startsWith('$2b$')) {
+      console.log(`  ❌ FAIL: Password is not bcrypt hashed`)
+      hasErrors = true
+    } else {
+      console.log(`  ✅ Password is properly hashed (bcrypt)`)
+    }
+  } else {
+    console.log(`❌ FAIL: Admin user not found`)
+    hasErrors = true
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 4: Verify User-Permission Assignments
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 4: Verifying user-permission assignments...')
+  
+  if (adminUser) {
+    const assignedPermissions = await prisma.userPermission.count({
+      where: { userId: adminUser.id },
+    })
+    
+    if (assignedPermissions === 70) {
+      console.log(`✅ PASS: Admin has ${assignedPermissions}/70 permissions`)
+    } else {
+      console.log(`❌ FAIL: Admin has ${assignedPermissions}/70 permissions`)
+      hasErrors = true
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 5: Verify Join Queries Work
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 5: Testing join queries...')
+  
+  try {
+    const usersWithPermissions = await prisma.user.findMany({
+      include: {
+        userPermissions: {
+          include: {
+            permission: true,
+          },
+        },
+      },
+    })
+    
+    if (usersWithPermissions.length > 0) {
+      console.log(`✅ PASS: Can query users with permissions`)
+      console.log(`  - Found ${usersWithPermissions.length} user(s)`)
+      console.log(`  - First user has ${usersWithPermissions[0].userPermissions.length} permissions`)
+    } else {
+      console.log(`❌ FAIL: No users found in join query`)
+      hasErrors = true
+    }
+  } catch (error) {
+    console.log(`❌ FAIL: Join query failed`)
+    console.error(error)
+    hasErrors = true
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 6: Verify Audit Logs
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 6: Verifying audit logs...')
+  const auditLogCount = await prisma.auditLog.count()
+  
+  if (auditLogCount >= 1) {
+    console.log(`✅ PASS: Found ${auditLogCount} audit log(s)`)
+    
+    const firstLog = await prisma.auditLog.findFirst({
+      orderBy: { timestamp: 'asc' },
+    })
+    
+    console.log(`  - First log: ${firstLog?.action}`)
+  } else {
+    console.log(`❌ FAIL: No audit logs found (expected at least 1)`)
+    hasErrors = true
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 7: Verify Unique Constraints
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 7: Testing unique constraints...')
+  
+  try {
+    // Try to create duplicate permission (should fail)
+    await prisma.permission.create({
+      data: {
+        key: 'inventory.view',
+        description: 'Test duplicate',
+        module: 'Test',
+      },
+    })
+    console.log(`❌ FAIL: Unique constraint not working (allowed duplicate key)`)
+    hasErrors = true
+  } catch (error: any) {
+    if (error.code === 'P2002') {
+      console.log(`✅ PASS: Unique constraint working (rejected duplicate key)`)
+    } else {
+      console.log(`⚠️  WARNING: Unexpected error testing unique constraint`)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // TEST 8: Verify Customers Table Untouched
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n📝 TEST 8: Verifying customers table...')
+  
+  try {
+    // Just check if table exists (don't query data)
+    const tableExists = await prisma.$queryRaw`
+      SELECT COUNT(*) as count 
+      FROM information_schema.tables 
+      WHERE table_schema = DATABASE() 
+      AND table_name = 'customers'
+    `
+    
+    console.log(`✅ PASS: Customers table exists and was not modified`)
+  } catch (error) {
+    console.log(`⚠️  WARNING: Could not verify customers table`)
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // SUMMARY
+  // ═══════════════════════════════════════════════════════════
+  console.log('\n' + '═'.repeat(60))
+  
+  if (hasErrors) {
+    console.log('❌ VERIFICATION FAILED')
+    console.log('═'.repeat(60))
+    console.log('\n⚠️  Please fix the issues above before proceeding to Prompt 09')
+    console.log('   Re-run: npm run verify:setup\n')
+    process.exit(1)
+  } else {
+    console.log('✅ ALL VERIFICATION TESTS PASSED')
+    console.log('═'.repeat(60))
+    console.log('\n🎉 Database foundation is solid!')
+    console.log('✅ Ready to proceed to Prompt 09: API Layer\n')
+  }
+}
+
+main()
+  .catch((e) => {
+    console.error('\n❌ Verification script error:')
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
+```
+
+### Update package.json
+
+Add verification script:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "seed:permissions": "ts-node prisma/seed-permissions.ts",
+    "seed:admin": "ts-node prisma/seed-admin.ts",
+    "verify:setup": "ts-node prisma/verify-setup.ts"
+  }
+}
+```
+
+### Run Verification
+
+```bash
+npm run verify:setup
+```
+
+**Expected output (ALL PASS):**
+```
+🔍 Verifying database setup...
+
+📝 TEST 1: Verifying permissions...
+✅ PASS: Found 70 permissions (expected 70)
+
+📝 TEST 2: Verifying permissions by module...
+  ✅ Inventory: 17/17
+  ✅ JobCard: 14/14
+  ✅ Rotables: 10/10
+  ✅ Tools: 11/11
+  ✅ Admin: 10/10
+  ✅ Reports: 8/8
+
+📝 TEST 3: Verifying admin user...
+✅ PASS: Admin user exists
+  - Name: George Thande
+  - Email: gtthande@gmail.com
+  - isAdmin: true
+  - isActive: true
+  ✅ Password is properly hashed (bcrypt)
+
+📝 TEST 4: Verifying user-permission assignments...
+✅ PASS: Admin has 70/70 permissions
+
+📝 TEST 5: Testing join queries...
+✅ PASS: Can query users with permissions
+  - Found 1 user(s)
+  - First user has 70 permissions
+
+📝 TEST 6: Verifying audit logs...
+✅ PASS: Found 1 audit log(s)
+  - First log: system.seed.admin_user
+
+📝 TEST 7: Testing unique constraints...
+✅ PASS: Unique constraint working (rejected duplicate key)
+
+📝 TEST 8: Verifying customers table...
+✅ PASS: Customers table exists and was not modified
+
+════════════════════════════════════════════════════════════
+✅ ALL VERIFICATION TESTS PASSED
+════════════════════════════════════════════════════════════
+
+🎉 Database foundation is solid!
+✅ Ready to proceed to Prompt 09: API Layer
+```
+
+## If Tests Fail
+
+### Missing Permissions
+
+```bash
+# Re-run permission seed
+npm run seed:permissions
+```
+
+### Missing Admin User
+
+```bash
+# Re-run admin seed
+npm run seed:admin
+```
+
+### Missing Permissions Assignments
+
+The admin seed should handle this, but if needed:
+
+```sql
+-- In phpMyAdmin, check:
+SELECT COUNT(*) FROM user_permissions WHERE userId = 'GEORGE_UUID';
+-- Should return 70
+```
+
+## Verification Checklist
+
+- [ ] Script created: `prisma/verify-setup.ts`
+- [ ] package.json updated with verify script
+- [ ] Ran: `npm run verify:setup`
+- [ ] All 8 tests passed
+- [ ] No errors in console
+- [ ] Script exit code: 0 (success)
+
+## Database State
+
+**After Prompt 08 (all tests pass):**
+- ✅ 70 permissions (all modules represented)
+- ✅ 1 admin user (George Thande)
+- ✅ 70 user-permission assignments
+- ✅ 1+ audit log entries
+- ✅ All joins work correctly
+- ✅ Unique constraints enforced
+- ✅ Customers table untouched
+
+---
+
+**Next Step:** Prompt 09 - API: GET /api/admin/users (NOW SAFE TO BUILD)

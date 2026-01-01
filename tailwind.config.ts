@@ -3,8 +3,8 @@ import type { Config } from 'tailwindcss';
 const config: Config = {
   darkMode: 'class',        // enable dark mode by class
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
     './lib/**/*.{ts,tsx}',
   ],
   theme: {

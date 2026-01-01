@@ -1,0 +1,274 @@
+# 🧩 CUBIC MATRIX DEV PROFILE & CURSOR RULES (v5)
+**Project:** Station-2100  
+**Purpose:** Master control file defining development standards and workflow for all AI-assisted development in this project.
+
+---
+
+## 🎯 CORE PRINCIPLES
+
+### Primary Focus
+- **Correctness > Speed**: Always prioritize correctness, architecture-first design, and thoroughness over quick fixes
+- **Deep Reasoning**: Understand requirements fully before coding
+- **Clean Architecture**: Modular, maintainable, scalable code structure
+
+### Development Philosophy
+1. **Architecture First**: Understand system design before implementation
+2. **Plan Before Code**: Create detailed plans with step-by-step breakdowns
+3. **Test-Driven Mindset**: Consider testability during design
+4. **Documentation**: Clear, explicit code with minimal but meaningful comments
+5. **Security by Design**: Threat-modeled, secure-by-default implementations
+
+---
+
+## 🛠️ TECH STACK & CONVENTIONS
+
+### Primary Stack
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript 5.3.0 (strict mode)
+- **Styling**: Tailwind CSS 3.4.0
+- **UI Components**: shadcn/ui
+- **Database**: MySQL
+- **ORM**: Prisma 5.2.0
+- **Authentication**: NextAuth.js 4.22.0
+- **Testing**: Jest with jsdom
+
+### Code Conventions
+- **TypeScript**: Strict mode, explicit types, no `any` without justification
+- **File Naming**: Explicit, descriptive filenames (e.g., `InventoryService.ts`, not `service.ts`)
+- **Comments**: Minimal but meaningful - explain "why" not "what"
+- **Imports**: Explicit, organized imports with clear grouping
+- **Error Handling**: Comprehensive error handling with proper types
+- **RBAC**: All service layer methods must include RBAC permission checks
+
+---
+
+## 📋 WORKFLOW: ARCHITECTURE → PLAN → CODE → TEST → HANDOFF
+
+### 1. ARCHITECTURE Phase
+**Before any code changes, you MUST:**
+- Review existing architecture documentation (`docs/architecture.md`)
+- Understand current system state and data models
+- Identify dependencies and integrations
+- Map user flows and business logic
+- Document API contracts and service boundaries
+- Review RBAC permission matrix
+
+**Deliverables:**
+- Architecture overview (if new feature)
+- Data flow diagrams (if complex)
+- File tree structure
+- Service layer definitions
+
+### 2. PLAN Phase
+**Create detailed plan before coding:**
+- Break down features into specific, actionable tasks
+- Define acceptance criteria
+- Identify dependencies between tasks
+- Plan database migrations (forward + rollback)
+- Design component structure
+- Plan test strategy
+- Risk assessment
+
+**Deliverables:**
+- Step-by-step task breakdown
+- CLI commands needed
+- Database migration plan
+- Component hierarchy
+- Test plan
+
+### 3. CODE Phase
+**Implementation standards:**
+- Follow TypeScript best practices (strict mode)
+- Use Prisma for all database operations
+- Implement RBAC checks in service layer (`lib/rbac.ts`)
+- Use Next.js 14 App Router patterns (Server Components, Server Actions)
+- Follow existing component patterns (see `components/` directory)
+- Maintain consistent naming conventions
+- Add proper error handling and validation
+- Use Tailwind for styling (no inline styles)
+
+**File Structure:**
+- Services: `lib/services/` (e.g., `lib/services/inventory.ts`)
+- Types: `lib/types.ts` (shared types)
+- Components: `components/` (organized by feature)
+- API Routes: `app/api/` (if needed, prefer Server Actions)
+- Pages: `app/` (App Router structure)
+
+### 4. TEST Phase
+**Testing requirements:**
+- Unit tests for services and utilities (`lib/__tests__/`)
+- Integration tests for API endpoints
+- Component tests for UI
+- RBAC permission tests (critical)
+- Edge case testing
+- Test coverage: Aim for >80% on critical paths
+
+**Test Commands:**
+- `npm test` - Run all tests
+- `npm run test:watch` - Watch mode
+- `npm run test:coverage` - Coverage report
+
+### 5. HANDOFF Phase
+**Document implementation:**
+- List all changes made (files, functions, routes)
+- Document environment variables needed
+- Note database migrations (forward + rollback)
+- Provide usage examples
+- List known issues or limitations
+- Update architecture docs if needed
+- Include rollback instructions
+
+**Deliverables:**
+- Implementation summary
+- Configuration guide
+- Migration notes
+- Usage documentation
+
+### 6. CURSOR PROMPT Phase
+**Generate next step prompt:**
+- Summarize current state
+- Identify next priorities
+- Provide context for continuation
+- Include relevant code references
+
+---
+
+## 🧮 QUALITY RUBRICS
+
+### Cubic Matrix Rubric (Target: Level 5 in all categories)
+
+| Dimension | Level 1 | Level 3 | Level 5 |
+|-----------|---------|---------|---------|
+| **Clarity** | Basic comments | Structured logic | Modular + diagram-ready |
+| **Accuracy** | Runs | Handles edge cases | Verified against docs/specs |
+| **Maintainability** | Consistent naming | Modular | Lint-safe, reusable |
+| **Scalability** | Works locally | Moderate load | Distributed, future-proof |
+| **Security** | Input checks | Auth integrated | Threat-modeled, secure-by-design |
+
+**Self-Review Required:**
+- After each implementation, rate yourself 1-5 on each dimension
+- Identify 1 improvement for each dimension below Level 5
+- Document improvements in handoff notes
+
+### Debug Rubric
+When debugging, follow this process:
+
+1. **Detect** - Identify issue & location (logs, error messages, stack traces)
+2. **Explain** - Root cause + mechanism (why it happened)
+3. **Resolve** - Minimal precise fix (don't over-engineer)
+4. **Verify** - Confirm via tests/logs (reproduce fix)
+5. **Prevent** - Add guard or typed contract (prevent regression)
+
+---
+
+## 🔒 SECURITY REQUIREMENTS
+
+### Authentication & Authorization
+- All protected routes must use NextAuth.js
+- Service layer methods MUST check RBAC permissions before execution
+- Use `lib/rbac.ts` helper functions for permission checks
+- Never trust client-side data - validate on server
+
+### Input Validation
+- Validate all user inputs (client + server)
+- Use TypeScript types for type safety
+- Sanitize database inputs (Prisma handles this, but be explicit)
+- Handle edge cases (null, undefined, empty strings)
+
+### Database Security
+- Use Prisma parameterized queries (automatic)
+- Never concatenate SQL strings
+- Use environment variables for sensitive data
+- Document all database migrations
+
+---
+
+## 📁 PROJECT STRUCTURE
+
+### Key Directories
+```
+app/              # Next.js 14 App Router pages
+components/       # React components (organized by feature)
+lib/              # Utilities, services, types, RBAC
+  services/       # Business logic services
+  __tests__/      # Unit tests
+prisma/           # Prisma schema and migrations
+docs/             # Architecture and documentation
+sql/              # SQL schema reference
+```
+
+### File Naming
+- Components: PascalCase (e.g., `InventoryCard.tsx`)
+- Services: camelCase (e.g., `inventoryService.ts`)
+- Types: camelCase (e.g., `types.ts`)
+- Pages: Next.js conventions (`page.tsx`, `layout.tsx`)
+
+---
+
+## 🚫 COMMON PITFALLS TO AVOID
+
+1. **Skipping Architecture/Plan phases** - Always understand before coding
+2. **No RBAC checks** - Every service method needs permission validation
+3. **Using `any` types** - Use proper TypeScript types
+4. **Inline styles** - Use Tailwind classes
+5. **No error handling** - Always handle errors gracefully
+6. **Skipping tests** - Critical paths must be tested
+7. **Hardcoded values** - Use environment variables
+8. **No migration rollback** - Always provide rollback plan
+
+---
+
+## ✅ CHECKLIST BEFORE ANY CODE CHANGES
+
+- [ ] Reviewed architecture documentation
+- [ ] Understood current system state
+- [ ] Created detailed plan with tasks
+- [ ] Identified all dependencies
+- [ ] Planned database migrations (if needed)
+- [ ] Designed component structure
+- [ ] Planned test strategy
+- [ ] Considered RBAC requirements
+- [ ] Identified security concerns
+- [ ] Reviewed existing code patterns
+
+---
+
+## 📝 COMMUNICATION STYLE
+
+- **Be Direct**: No filler, get to the point
+- **Compare Options**: If multiple approaches exist, compare with trade-offs
+- **Explicit Filenames**: Always specify exact file paths
+- **Complete Code**: Provide runnable, complete code snippets
+- **Context Matters**: Reference existing patterns and conventions
+
+---
+
+## 🔄 REFERENCE DOCUMENTS
+
+- Architecture: `docs/architecture.md`
+- Workflow: `docs/cubic-matrix-v5-workflow.md`
+- Types: `lib/types.ts`
+- RBAC: `lib/rbac.ts`
+- Database Schema: `prisma/schema.prisma` and `sql/schema.sql`
+
+---
+
+## 🎯 REMEMBER
+
+**Before executing ANY task in this project:**
+1. Read and understand these rules
+2. Review relevant documentation
+3. Follow the Architecture → Plan → Code → Test → Handoff workflow
+4. Apply the Cubic Matrix Rubric (target Level 5)
+5. Include RBAC checks in all service methods
+6. Write tests for critical paths
+7. Document changes in handoff phase
+
+**Correctness > Speed. Architecture > Quick Fixes. Quality > Quantity.**
+
+---
+
+**Last Updated:** Based on Cubic Matrix Dev Profile v5  
+**Project:** Station-2100  
+**Stack:** Next.js 14 + TypeScript + Prisma + MySQL + NextAuth
+
