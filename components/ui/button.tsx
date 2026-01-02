@@ -1,48 +1,45 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+'use client';
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'ghost' | 'outline' | 'secondary' | 'danger';
-  size?: 'default' | 'icon' | 'sm' | 'lg';
-  loading?: boolean;
+import React from 'react';
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'default'
+  size?: 'sm' | 'icon' | 'default'
+  children: React.ReactNode
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', loading, disabled, children, ...props }, ref) => {
-    return (
-      <button
-        className={cn(
-          'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none',
-          {
-            'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'default',
-            'bg-gray-200 text-gray-900 hover:bg-gray-300': variant === 'secondary',
-            'bg-red-500 text-white hover:bg-red-600': variant === 'danger',
-            'hover:bg-accent hover:text-accent-foreground': variant === 'ghost',
-            'border border-input hover:bg-accent hover:text-accent-foreground': variant === 'outline',
-            'h-10 px-4 py-2': size === 'default',
-            'h-9 px-3': size === 'sm',
-            'h-11 px-8': size === 'lg',
-            'h-10 w-10': size === 'icon',
-          },
-          className
-        )}
-        ref={ref}
-        disabled={disabled || loading}
-        {...props}
-      >
-        {loading ? (
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            <span>Loading...</span>
-          </div>
-        ) : (
-          children
-        )}
-      </button>
-    );
+export function Button({ 
+  variant = 'primary', 
+  size = 'default',
+  children, 
+  className = '',
+  ...props 
+}: ButtonProps) {
+  const baseClasses = 'rounded font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+  
+  // Map 'default' to 'primary' for backward compatibility
+  const normalizedVariant = variant === 'default' ? 'primary' : variant
+  
+  const variantClasses = {
+    primary: 'bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-500',
+    secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-400',
+    danger: 'bg-red-500 hover:bg-red-600 text-white focus:ring-red-500',
+    ghost: 'bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-400',
   }
-);
-Button.displayName = 'Button';
 
-export { Button };
+  const sizeClasses = {
+    default: 'px-4 py-2',
+    sm: 'px-3 py-1.5 text-sm',
+    icon: 'p-2 w-10 h-10',
+  }
+
+  return (
+    <button
+      className={`${baseClasses} ${variantClasses[normalizedVariant]} ${sizeClasses[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+}
+

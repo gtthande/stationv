@@ -14,21 +14,24 @@ export async function GET(request: NextRequest) {
       ],
     })
 
-    await prisma.auditLog.create({
-      data: {
-        userId: null,
-        action: 'permission.list',
-        module: 'Admin',
-        details: { count: permissions.length, filterModule: module },
-      },
-    })
+    // Create audit log entry (non-blocking - don't fail request if audit log fails)
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: null,
+          action: 'permission.list',
+          module: 'Admin',
+          details: { count: permissions.length, filterModule: module },
+        },
+      })
+    } catch (auditError) {
+      console.warn('[API] GET /api/admin/permissions - Audit log creation failed (non-blocking):', auditError)
+    }
 
     return NextResponse.json(permissions)
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to fetch permissions', message: (error as Error).message },
-      { status: 500 }
-    )
+    console.error('[API] GET /api/admin/permissions - Error:', error)
+    return NextResponse.json([], { status: 500 })
   }
 }
 

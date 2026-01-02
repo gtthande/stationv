@@ -18,6 +18,8 @@ interface UserTableProps {
 }
 
 export function UserTable({ users, onEdit, onDelete, onManagePermissions }: UserTableProps) {
+  const safeUsers = Array.isArray(users) ? users : []
+  
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border" aria-label="Users list">
@@ -31,7 +33,7 @@ export function UserTable({ users, onEdit, onDelete, onManagePermissions }: User
           </tr>
         </thead>
         <tbody>
-          {users.map((user) => (
+          {safeUsers.map((user) => (
             <tr key={user.id} className="hover:bg-gray-50">
               <td className="px-4 py-2 border-b">{user.name}</td>
               <td className="px-4 py-2 border-b">{user.email}</td>

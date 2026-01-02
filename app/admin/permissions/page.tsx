@@ -31,10 +31,14 @@ export default function PermissionsPage() {
   const fetchPermissions = async () => {
     try {
       const res = await fetch('/api/admin/permissions')
-      const data = await res.json()
-      setPermissions(data)
+      const raw = await res.json()
+      
+      // Defensive normalization: always expect array
+      const safePermissions = Array.isArray(raw) ? raw : []
+      setPermissions(safePermissions)
     } catch (error) {
       console.error('Failed to fetch permissions:', error)
+      setPermissions([])
     } finally {
       setLoading(false)
     }
@@ -124,7 +128,7 @@ export default function PermissionsPage() {
       </div>
 
       <PermissionTable
-        permissions={permissions}
+        permissions={Array.isArray(permissions) ? permissions : []}
         onEdit={setEditingPermission}
         onDelete={handleDeletePermission}
       />

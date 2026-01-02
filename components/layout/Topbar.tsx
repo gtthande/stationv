@@ -2,7 +2,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import ThemeToggle from './ThemeToggle';
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',

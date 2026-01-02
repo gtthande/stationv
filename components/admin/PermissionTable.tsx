@@ -18,6 +18,8 @@ interface PermissionTableProps {
 }
 
 export function PermissionTable({ permissions, onEdit, onDelete }: PermissionTableProps) {
+  const safePermissions = Array.isArray(permissions) ? permissions : []
+  
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full bg-white border" aria-label="Permissions list">
@@ -32,7 +34,7 @@ export function PermissionTable({ permissions, onEdit, onDelete }: PermissionTab
           </tr>
         </thead>
         <tbody>
-          {permissions.map((permission) => (
+          {safePermissions.map((permission) => (
             <tr key={permission.id} className="hover:bg-gray-50">
               <td className="px-4 py-2 border-b font-mono text-sm">{permission.key}</td>
               <td className="px-4 py-2 border-b">{permission.description}</td>

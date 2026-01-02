@@ -42,16 +42,12 @@ export default function UsersPage() {
       const res = await fetch('/api/admin/users')
       const raw = await res.json()
       
-      // Defensive normalization: handle array, wrapped object, or error
-      const normalizedUsers = Array.isArray(raw)
-        ? raw
-        : Array.isArray(raw?.users)
-        ? raw.users
-        : []
+      // Defensive normalization: always expect array
+      const safeUsers = Array.isArray(raw) ? raw : []
       
-      setUsers(normalizedUsers)
+      setUsers(safeUsers)
       
-      if (!res.ok || (!Array.isArray(raw) && !Array.isArray(raw?.users))) {
+      if (!res.ok) {
         setError('Failed to load users')
       }
     } catch (error) {
@@ -66,10 +62,14 @@ export default function UsersPage() {
   const fetchPermissions = async () => {
     try {
       const res = await fetch('/api/admin/permissions')
-      const data = await res.json()
-      setPermissions(data)
+      const raw = await res.json()
+      
+      // Defensive normalization: always expect array
+      const safePermissions = Array.isArray(raw) ? raw : []
+      setPermissions(safePermissions)
     } catch (error) {
       console.error('Failed to fetch permissions:', error)
+      setPermissions([])
     }
   }
 
@@ -139,7 +139,8 @@ export default function UsersPage() {
 
   const handleManagePermissions = (user: User) => {
     setManagingPermissionsFor(user)
-    setSelectedPermissions(user.permissions.map((p) => p.id))
+    const userPermissions = Array.isArray(user.permissions) ? user.permissions : []
+    setSelectedPermissions(userPermissions.map((p) => p.id))
   }
 
   const handleSavePermissions = async () => {
@@ -147,7 +148,8 @@ export default function UsersPage() {
 
     try {
       // Get current permission IDs
-      const currentPermissionIds = managingPermissionsFor.permissions.map((p) => p.id)
+      const userPermissions = Array.isArray(managingPermissionsFor.permissions) ? managingPermissionsFor.permissions : []
+      const currentPermissionIds = userPermissions.map((p) => p.id)
       
       // Find permissions to grant and revoke
       const toGrant = selectedPermissions.filter((id) => !currentPermissionIds.includes(id))
@@ -204,7 +206,7 @@ export default function UsersPage() {
       )}
 
       <UserTable
-        users={users}
+        users={Array.isArray(users) ? users : []}
         onEdit={setEditingUser}
         onDelete={handleDeleteUser}
         onManagePermissions={handleManagePermissions}
@@ -246,7 +248,7 @@ export default function UsersPage() {
         {managingPermissionsFor && (
           <div className="space-y-4">
             <PermissionSelector
-              availablePermissions={permissions}
+              availablePermissions={Array.isArray(permissions) ? permissions : []}
               selectedPermissions={selectedPermissions}
               onChange={setSelectedPermissions}
             />

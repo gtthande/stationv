@@ -40,25 +40,26 @@ export async function GET(request: NextRequest) {
       })),
     }))
 
-    // Create audit log entry
-    await prisma.auditLog.create({
-      data: {
-        userId: null, // TODO: Get from authenticated session
-        action: 'user.list',
-        module: 'Admin',
-        details: {
-          userCount: sanitizedUsers.length,
+    // Create audit log entry (non-blocking - don't fail request if audit log fails)
+    try {
+      await prisma.auditLog.create({
+        data: {
+          userId: null, // TODO: Get from authenticated session
+          action: 'user.list',
+          module: 'Admin',
+          details: {
+            userCount: sanitizedUsers.length,
+          },
         },
-      },
-    })
+      })
+    } catch (auditError) {
+      console.warn('[API] GET /api/admin/users - Audit log creation failed (non-blocking):', auditError)
+    }
 
     return NextResponse.json(sanitizedUsers, { status: 200 })
   } catch (error) {
-    console.error('Error fetching users:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch users', message: (error as Error).message },
-      { status: 500 }
-    )
+    console.error('[API] GET /api/admin/users - Error:', error)
+    return NextResponse.json([], { status: 500 })
   }
 }
 
