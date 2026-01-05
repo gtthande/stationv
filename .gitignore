@@ -38,3 +38,7 @@ next-env.d.ts
 # prisma
 /prisma/migrations
 
+# local database backups
+database_dumps/
+
+
