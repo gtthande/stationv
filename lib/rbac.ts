@@ -10,6 +10,40 @@
 import { prisma } from './db';
 
 /**
+ * ✅ CENTRALIZED SUPER-USER BYPASS
+ * 
+ * This is the SINGLE SOURCE OF TRUTH for super-user checks.
+ * If user.isAdmin === true, ALL permission checks must return true.
+ * 
+ * This function MUST be called at the VERY TOP of every permission evaluation.
+ * 
+ * @param userId - The ID of the user to check (UUID string)
+ * @returns Promise<boolean> - True if user is active super user, false otherwise
+ */
+async function isSuperUser(userId: string): Promise<boolean> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isActive: true },
+    });
+
+    // ✅ SUPER USER BYPASS - Check isAdmin FIRST
+    if (user?.isAdmin === true && user?.isActive === true) {
+      // Optional debug log (dev only)
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('[RBAC] Super user bypass applied', { userId });
+      }
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('[RBAC] Error checking super user status:', error);
+    return false;
+  }
+}
+
+/**
  * Check if a user has a specific permission
  * 
  * @param userId - The ID of the user to check (UUID string)
@@ -26,6 +60,18 @@ import { prisma } from './db';
  */
 export async function can(userId: string, permissionKey: string): Promise<boolean> {
   try {
+    // ✅ SUPER USER BYPASS — MUST BE FIRST (single source of truth)
+    // Check isAdmin === true before any other logic
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isActive: true },
+    });
+    
+    if (user?.isAdmin === true && user?.isActive === true) {
+      return true;
+    }
+
+    // 🔐 Normal RBAC enforcement
     const userPermission = await prisma.userPermission.findFirst({
       where: {
         userId: userId,
@@ -51,9 +97,30 @@ export async function can(userId: string, permissionKey: string): Promise<boolea
  * 
  * @param userId - The ID of the user (UUID string)
  * @returns Promise<string[]> - Array of permission keys
+ * 
+ * Note: For super users, this returns empty array since they bypass all checks.
+ * The can() function handles the bypass logic.
  */
 export async function getUserPermissions(userId: string): Promise<string[]> {
   try {
+    // ✅ SUPER USER BYPASS — Check if user is admin first (centralized check)
+    // Note: Super users bypass permission checks, so we return empty array
+    // The actual bypass is handled in can(), canAny(), canAll() functions
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isAdmin: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      return [];
+    }
+
+    // For super users, return empty array (they bypass checks via isSuperUser())
+    if (user.isAdmin === true) {
+      return [];
+    }
+
+    // 🔐 Normal RBAC enforcement - return actual permissions
     const userPermissions = await prisma.userPermission.findMany({
       where: {
         userId: userId,
@@ -91,6 +158,18 @@ export async function canAny(
     return false;
   }
 
+  // ✅ SUPER USER BYPASS — MUST BE FIRST (single source of truth)
+  // Check isAdmin === true before any other logic
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isAdmin: true, isActive: true },
+  });
+  
+  if (user?.isAdmin === true && user?.isActive === true) {
+    return true;
+  }
+
+  // 🔐 Normal RBAC enforcement
   const userPermissions = await getUserPermissions(userId);
   return permissionKeys.some(key => userPermissions.includes(key));
 }
@@ -110,6 +189,18 @@ export async function canAll(
     return true;
   }
 
+  // ✅ SUPER USER BYPASS — MUST BE FIRST (single source of truth)
+  // Check isAdmin === true before any other logic
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isAdmin: true, isActive: true },
+  });
+  
+  if (user?.isAdmin === true && user?.isActive === true) {
+    return true;
+  }
+
+  // 🔐 Normal RBAC enforcement
   const userPermissions = await getUserPermissions(userId);
   return permissionKeys.every(key => userPermissions.includes(key));
 }

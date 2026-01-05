@@ -47,17 +47,19 @@ export interface Location {
 }
 
 export interface Supplier {
-  id: number;
-  name: string;
+  id: bigint;
   code?: string | null;
-  contact_person?: string | null;
+  name: string;
+  contactName?: string | null;
   email?: string | null;
   phone?: string | null;
+  country?: string | null;
+  city?: string | null;
   address?: string | null;
   notes?: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Customer {

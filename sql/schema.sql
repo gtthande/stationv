@@ -74,20 +74,36 @@ CREATE TABLE locations (
     FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE suppliers (
-  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name           VARCHAR(255) NOT NULL,
-  code           VARCHAR(100) NULL UNIQUE,
-  contact_person VARCHAR(255) NULL,
-  email          VARCHAR(255) NULL,
-  phone          VARCHAR(100) NULL,
-  address        TEXT NULL,
-  notes          TEXT NULL,
-  is_active      TINYINT(1) NOT NULL DEFAULT 1,
-  created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS suppliers (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+
+  code VARCHAR(50) NULL UNIQUE COMMENT 'Internal supplier code',
+  name VARCHAR(255) NOT NULL,
+
+  contact_name VARCHAR(255) NULL,
+  email VARCHAR(255) NULL,
+  phone VARCHAR(50) NULL,
+
+  country VARCHAR(100) NULL DEFAULT 'Kenya',
+  city VARCHAR(100) NULL,
+  address TEXT NULL,
+
+  notes TEXT NULL COMMENT 'Free-form notes / reference numbers',
+
+  is_active BOOLEAN NOT NULL DEFAULT 1,
+
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_name (name),
+  INDEX idx_code (code),
+  INDEX idx_active (is_active)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_unicode_ci
+COMMENT='Suppliers / vendors for procurement and inventory';
 
 CREATE TABLE customers (
   id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

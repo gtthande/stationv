@@ -49,18 +49,18 @@ This document provides a high‑level overview of the Station‑2100 architectur
 
 ## Core Modules
 
-All modules have UI pages with placeholder content. **All data is mocked/static** - no backend implementation yet:
+Module implementation status:
 
-1. **Dashboard** – Overview with KPI cards and module summaries
-2. **Inventory** – Stock tracking and batch management
-3. **Job Cards** – Work order management
-4. **Rotables** – Serialized parts tracking
-5. **Tools** – Tool inventory management
-6. **Suppliers** – Supplier management
-7. **Customers** – Customer management
-8. **Reports** – Analytics and reporting
-9. **Admin** – User and role management
-10. **Settings** – System configuration
+1. **Dashboard** – Overview with KPI cards and module summaries (UI only, mocked data)
+2. **Inventory** – Stock tracking and batch management (UI only, placeholder)
+3. **Job Cards** – Work order management (UI only, placeholder)
+4. **Rotables** – Serialized parts tracking (UI only, placeholder)
+5. **Tools** – Tool inventory management (UI only, placeholder)
+6. **Suppliers** – ✅ **COMPLETE** – Database, API routes, and Dashboard UI implemented
+7. **Customers** – Customer management (UI only, placeholder)
+8. **Reports** – Analytics and reporting (UI only, placeholder)
+9. **Admin** – User and role management (partial - users/permissions implemented)
+10. **Settings** – System configuration (UI only, placeholder)
 
 ## Development Plan
 
@@ -82,17 +82,18 @@ All modules have UI pages with placeholder content. **All data is mocked/static*
 3. Add session middleware
 4. Protect dashboard routes
 
-### Phase 4: API & Services (Future)
-1. Create API routes for each module
-2. Implement data services with Prisma
-3. Add RBAC checks using `lib/rbac.ts`
-4. Replace dummy data with real queries
+### Phase 4: API & Services (In Progress)
+1. ✅ Create API routes for Suppliers module
+2. ✅ Implement data services with Prisma (Suppliers)
+3. ✅ Add RBAC checks using `lib/rbac.ts` (Suppliers)
+4. ⏳ Replace dummy data with real queries (other modules)
 
-### Phase 5: Forms & Interactions (Future)
-1. Build form components
-2. Implement CRUD operations
-3. Add validation
-4. Connect to API routes
+### Phase 5: Forms & Interactions (In Progress)
+1. ✅ Build form components (Suppliers)
+2. ✅ Implement CRUD operations (Suppliers)
+3. ✅ Add validation (Suppliers)
+4. ✅ Connect to API routes (Suppliers)
+5. ⏳ Implement for other modules
 
 ### Phase 6: Testing (Future)
 1. Unit tests for services
@@ -108,7 +109,14 @@ app/
   dashboard/
     layout.tsx            # Dashboard layout with AppShell
     page.tsx              # Main dashboard
-    [module]/page.tsx     # Module pages
+    suppliers/
+      page.tsx            # Suppliers page (complete implementation)
+      _components/         # Suppliers UI components
+    [module]/page.tsx     # Other module pages (placeholders)
+  api/
+    suppliers/            # Suppliers API routes (complete)
+      route.ts            # GET (list), POST (create)
+      [id]/route.ts       # GET, PATCH, DELETE
 
 components/
   layout/                 # AppShell, Sidebar, Topbar, ThemeToggle
@@ -117,12 +125,15 @@ components/
   ui/                     # Reusable UI components
 
 lib/
-  rbac.ts                 # RBAC types and helpers (not yet used)
+  rbac.ts                 # RBAC types and helpers (used in Suppliers)
   types.ts                # TypeScript types
   ThemeProvider.tsx       # Theme context provider
   chartTheme.ts           # Chart styling configuration
   utils.ts                # Utility functions
-  db.ts                   # Database client (not yet connected)
+  db.ts                   # Database client (connected for Suppliers)
+  prisma.ts               # Prisma client singleton
+  services/
+    supplierService.ts    # Suppliers service layer with RBAC
 
 prisma/
   schema.prisma           # Prisma schema (not yet connected)
