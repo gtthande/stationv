@@ -8,6 +8,7 @@ interface User {
   email: string
   isAdmin: boolean
   isActive: boolean
+  permissions?: any[] // Optional - not used by table but may be present in data
 }
 
 interface UserTableProps {

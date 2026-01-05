@@ -14,7 +14,7 @@ interface User {
   email: string
   isAdmin: boolean
   isActive: boolean
-  permissions: any[]
+  permissions?: any[] // Optional - may not always be loaded
 }
 
 export default function UsersPage() {
@@ -207,7 +207,7 @@ export default function UsersPage() {
 
       <UserTable
         users={Array.isArray(users) ? users : []}
-        onEdit={setEditingUser}
+        onEdit={(user) => setEditingUser(user)}
         onDelete={handleDeleteUser}
         onManagePermissions={handleManagePermissions}
       />

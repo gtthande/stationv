@@ -2,7 +2,9 @@
  * Role-Based Access Control (RBAC) helper functions
  * 
  * This module provides utilities for checking user permissions based on
- * their assigned roles and the permissions associated with those roles.
+ * the UserPermission model in the Prisma schema.
+ * 
+ * Note: The current schema uses direct User-Permission mapping (no roles).
  */
 
 import { prisma } from './db';
@@ -10,52 +12,34 @@ import { prisma } from './db';
 /**
  * Check if a user has a specific permission
  * 
- * @param userId - The ID of the user to check
- * @param permissionCode - The permission code to check (e.g., 'inventory:read', 'jobs:write')
+ * @param userId - The ID of the user to check (UUID string)
+ * @param permissionKey - The permission key to check (e.g., 'inventory.view', 'jobcard.create')
  * @returns Promise<boolean> - True if the user has the permission, false otherwise
  * 
  * @example
  * ```typescript
- * const canReadInventory = await can(userId, 'inventory:read');
+ * const canReadInventory = await can(userId, 'inventory.view');
  * if (canReadInventory) {
  *   // User can read inventory
  * }
  * ```
  */
-export async function can(userId: number, permissionCode: string): Promise<boolean> {
+export async function can(userId: string, permissionKey: string): Promise<boolean> {
   try {
-    // Get all roles for the user
-    const userRoles = await prisma.userRole.findMany({
+    const userPermission = await prisma.userPermission.findFirst({
       where: {
         userId: userId,
+        permission: {
+          key: permissionKey,
+          isActive: true,
+        },
         user: {
           isActive: true,
         },
       },
-      include: {
-        role: true,
-      },
     });
 
-    if (userRoles.length === 0) {
-      return false;
-    }
-
-    const roleIds = userRoles.map(ur => ur.roleId);
-
-    // Check if any of the user's roles have the requested permission
-    const hasPermission = await prisma.rolePermission.findFirst({
-      where: {
-        roleId: {
-          in: roleIds,
-        },
-        permission: {
-          code: permissionCode,
-        },
-      },
-    });
-
-    return hasPermission !== null;
+    return userPermission !== null;
   } catch (error) {
     console.error('Error checking permission:', error);
     return false;
@@ -63,35 +47,21 @@ export async function can(userId: number, permissionCode: string): Promise<boole
 }
 
 /**
- * Get all permissions for a user (across all their roles)
+ * Get all permissions for a user
  * 
- * @param userId - The ID of the user
- * @returns Promise<string[]> - Array of permission codes
+ * @param userId - The ID of the user (UUID string)
+ * @returns Promise<string[]> - Array of permission keys
  */
-export async function getUserPermissions(userId: number): Promise<string[]> {
+export async function getUserPermissions(userId: string): Promise<string[]> {
   try {
-    const userRoles = await prisma.userRole.findMany({
+    const userPermissions = await prisma.userPermission.findMany({
       where: {
         userId: userId,
         user: {
           isActive: true,
         },
-      },
-      include: {
-        role: true,
-      },
-    });
-
-    if (userRoles.length === 0) {
-      return [];
-    }
-
-    const roleIds = userRoles.map(ur => ur.roleId);
-
-    const rolePermissions = await prisma.rolePermission.findMany({
-      where: {
-        roleId: {
-          in: roleIds,
+        permission: {
+          isActive: true,
         },
       },
       include: {
@@ -99,12 +69,7 @@ export async function getUserPermissions(userId: number): Promise<string[]> {
       },
     });
 
-    // Extract unique permission codes
-    const permissionCodes = new Set(
-      rolePermissions.map(rp => rp.permission.code)
-    );
-
-    return Array.from(permissionCodes);
+    return userPermissions.map(up => up.permission.key);
   } catch (error) {
     console.error('Error getting user permissions:', error);
     return [];
@@ -114,69 +79,79 @@ export async function getUserPermissions(userId: number): Promise<string[]> {
 /**
  * Check if a user has any of the specified permissions
  * 
- * @param userId - The ID of the user to check
- * @param permissionCodes - Array of permission codes to check
+ * @param userId - The ID of the user to check (UUID string)
+ * @param permissionKeys - Array of permission keys to check
  * @returns Promise<boolean> - True if the user has at least one of the permissions
  */
 export async function canAny(
-  userId: number,
-  permissionCodes: string[]
+  userId: string,
+  permissionKeys: string[]
 ): Promise<boolean> {
-  if (permissionCodes.length === 0) {
+  if (permissionKeys.length === 0) {
     return false;
   }
 
   const userPermissions = await getUserPermissions(userId);
-  return permissionCodes.some(code => userPermissions.includes(code));
+  return permissionKeys.some(key => userPermissions.includes(key));
 }
 
 /**
  * Check if a user has all of the specified permissions
  * 
- * @param userId - The ID of the user to check
- * @param permissionCodes - Array of permission codes to check
+ * @param userId - The ID of the user to check (UUID string)
+ * @param permissionKeys - Array of permission keys to check
  * @returns Promise<boolean> - True if the user has all of the permissions
  */
 export async function canAll(
-  userId: number,
-  permissionCodes: string[]
+  userId: string,
+  permissionKeys: string[]
 ): Promise<boolean> {
-  if (permissionCodes.length === 0) {
+  if (permissionKeys.length === 0) {
     return true;
   }
 
   const userPermissions = await getUserPermissions(userId);
-  return permissionCodes.every(code => userPermissions.includes(code));
+  return permissionKeys.every(key => userPermissions.includes(key));
 }
 
 /**
- * Get all roles for a user
+ * Get all permissions for a user with full details
  * 
- * @param userId - The ID of the user
- * @returns Promise<Array<{id: number, name: string, description: string | null}>>
+ * @param userId - The ID of the user (UUID string)
+ * @returns Promise<Array<{id: string, key: string, description: string, module: string}>>
  */
-export async function getUserRoles(userId: number) {
+export async function getUserPermissionsWithDetails(userId: string) {
   try {
-    const userRoles = await prisma.userRole.findMany({
+    const userPermissions = await prisma.userPermission.findMany({
       where: {
         userId: userId,
         user: {
           isActive: true,
         },
+        permission: {
+          isActive: true,
+        },
       },
       include: {
-        role: true,
+        permission: true,
       },
     });
 
-    return userRoles.map(ur => ({
-      id: ur.role.id,
-      name: ur.role.name,
-      description: ur.role.description,
+    return userPermissions.map(up => ({
+      id: up.permission.id,
+      key: up.permission.key,
+      description: up.permission.description,
+      module: up.permission.module,
+      category: up.permission.category,
     }));
   } catch (error) {
-    console.error('Error getting user roles:', error);
+    console.error('Error getting user permissions with details:', error);
     return [];
   }
 }
 
+/**
+ * Note: getUserRoles() is not available in the current schema.
+ * The schema uses direct User-Permission mapping without roles.
+ * Use getUserPermissions() or getUserPermissionsWithDetails() instead.
+ */

@@ -53,7 +53,7 @@ export function PermissionSelector({
     if (allSelected) {
       onChange(selectedPermissions.filter((id) => !modulePermissions.includes(id)))
     } else {
-      onChange([...new Set([...selectedPermissions, ...modulePermissions])])
+      onChange(Array.from(new Set([...selectedPermissions, ...modulePermissions])))
     }
   }
 
