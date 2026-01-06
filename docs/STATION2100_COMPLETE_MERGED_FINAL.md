@@ -41,7 +41,77 @@ It manages everything through:
 
 **Core Principle:** No stock value or job value is ever manually typed—**everything comes from controlled transactions**.
 
-### 1.2 System Scope (Complete Feature Set)
+### 1.2 Current State (2026-01-06)
+
+**Core Reference Data Layer: Stable and Complete**
+
+The foundation of Station-2100 is now stable with three complete reference modules:
+
+#### ✅ Suppliers Module
+- **Status**: Complete and production-ready
+- **Implementation**: Database schema, service layer, API routes, UI components, RBAC checks
+- **Usage**: Active CRUD operations, used across inventory & procurement workflows
+- **Access**: Admin-only (permission: `admin.manage_suppliers`)
+
+#### ✅ Customers Module
+- **Status**: Complete and production-ready
+- **Implementation**: Database schema, service layer, API routes, UI components, RBAC checks
+- **Usage**: Imported and stable, used in job cards & billing workflows
+- **Access**: Admin-only (permission: `admin.manage_customers`)
+- **Data**: Historical customer data successfully imported
+
+#### ✅ Warehouses Module (Admin Reference Data)
+- **Status**: Complete and production-ready
+- **Implementation**: Simple structure (name + active flag), admin-only access
+- **Seeded Defaults**: Main Warehouse, Consumables, Owner Supplied
+- **Usage**: Referenced by inventory only (not transactional)
+- **Design**: Intentionally minimal - 95% of installs never add more warehouses
+- **Access**: Admin-only (no granular permissions required)
+
+**Foundation Principle**: The reference data layer is stable. Future operational modules (Inventory, Job Cards, Rotables, Tools) will build ON TOP of this foundation, not modify it. This separation ensures reference data stability while allowing operational modules to evolve independently.
+
+**Next Phase**: Inventory Core development can proceed with confidence, referencing the stable Suppliers, Customers, and Warehouses modules.
+
+### Reference Data Modules
+
+The foundation of Station-2100 consists of three stable reference data modules that are complete and production-ready:
+
+#### Suppliers Module
+- **Status**: Complete and production-ready
+- **Access**: Admin-only (permission: `admin.manage_suppliers`)
+- **Features**: Full CRUD operations, active/inactive management
+- **Usage**: Referenced by inventory batches and procurement workflows
+- **Data**: Successfully imported and verified
+
+#### Customers Module
+- **Status**: Complete and production-ready
+- **Access**: Admin-only (permission: `admin.manage_customers`)
+- **Features**: Full CRUD operations, imported historical data
+- **Usage**: Referenced by job cards and billing workflows
+- **Data**: Historical customer data successfully imported
+
+#### Warehouses Module (Admin Reference Data)
+- **Status**: Complete and production-ready
+- **Access**: Admin-only (no granular permissions required)
+- **Structure**: Simple (name + active flag only)
+- **Seeded Defaults**: Main Warehouse, Consumables, Owner Supplied
+- **Usage**: Referenced by inventory only (not transactional)
+- **Design Philosophy**: Intentionally minimal - 95% of installs never add more warehouses
+- **Purpose**: Logical stock segregation, not physical locations
+- **Characteristics**:
+  - Reference data, not operational entities
+  - Admin-managed and rarely changed
+  - Designed for stability and reliability
+  - Core inventory logic assumes warehouses already exist
+
+**Foundation Characteristics:**
+- These modules form the foundation of the system
+- They are intentionally boring, stable, and reliable
+- They provide master data for transactional modules
+- They will not be modified during operational module development
+- Future modules build ON TOP of this foundation, not modify it
+
+### 1.3 System Scope (Complete Feature Set)
 
 **✅ All Features Preserved and Carried Forward:**
 

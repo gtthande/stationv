@@ -28,7 +28,7 @@
 │                      (After Phase 1 Complete)                   │
 └────────────────────────────────────────────────────────────────┘
 
-📦 MODULE 1: INVENTORY MANAGEMENT
+📦 MODULE 1: INVENTORY MANAGEMENT (Batch-driven)
    ├── Master-Detail Architecture
    │   ├── Product Catalog (inventory_products)
    │   └── Batch Tracking (inventory_batches)
@@ -42,11 +42,12 @@
    │   ├── Location management (bin/rack/row)
    │   ├── Barcode/QR generation
    │   └── Historical stock queries
-   └── Permissions: 17 inventory.* permissions
+   ├── Permissions: 17 inventory.* permissions
+   └── References: Suppliers, Warehouses (stable reference data)
    
-   📊 Status: PENDING
+   📊 Status: ⏳ NEXT PHASE (Ready to Begin)
    ⏱️  Timeline: 2-3 weeks
-   🔗 Depends on: Phase 1 (Admin/Permissions)
+   🔗 Depends on: Phase 1 (Admin/Permissions) ✅, Phase 4 (Core Reference Data) ✅
 
 🔧 MODULE 2: JOB CARDS / WORK ORDERS
    ├── 4-Tab Structure:
@@ -104,30 +105,44 @@
 │                  (After Phase 3 Complete)                       │
 └────────────────────────────────────────────────────────────────┘
 
-📊 MODULE 5: SUPPLIERS & CUSTOMERS
-   ├── ✅ Supplier master data - COMPLETE
-   │   ├── ✅ UI complete
-   │   ├── ✅ API complete
+📊 MODULE 5: CORE REFERENCE DATA
+   ├── ✅ Suppliers - COMPLETE
+   │   ├── ✅ Database schema complete
+   │   ├── ✅ Service layer with RBAC
+   │   ├── ✅ API routes complete
+   │   ├── ✅ UI complete (CRUD operations)
    │   ├── ✅ RBAC verified
+   │   ├── ✅ Unit tests complete
+   │   ├── ✅ Documentation complete
+   │   └── ✅ Data imported successfully
+   ├── ✅ Customers - COMPLETE
+   │   ├── ✅ Database schema complete
+   │   ├── ✅ Service layer with RBAC
+   │   ├── ✅ API routes complete
+   │   ├── ✅ UI complete (CRUD operations)
+   │   ├── ✅ RBAC verified
+   │   ├── ✅ Data imported and verified
+   │   └── ✅ Documentation complete
+   ├── ✅ Warehouses - COMPLETE (Admin Reference Module)
+   │   ├── ✅ Simple structure (name + active flag)
+   │   ├── ✅ Admin-only access
+   │   ├── ✅ Seeded default warehouses (Main, Consumables, Owner Supplied)
    │   ├── ✅ Service layer complete
+   │   ├── ✅ API routes complete
+   │   ├── ✅ Admin UI complete
    │   └── ✅ Documentation complete
-   ├── ✅ Customer master data - COMPLETE
-   │   ├── ✅ UI complete
-   │   ├── ✅ API complete
-   │   ├── ✅ RBAC verified
-   │   ├── ✅ Data imported
-   │   └── ✅ Documentation complete
-   ├── ⏸️ Warehouses - PAUSED (API errors, deferred)
-   ├── Contact information (future)
-   ├── Payment terms (future)
-   ├── Transaction history (future)
-   └── Integration with inventory/jobs (future)
    
-   📊 Status: ✅ COMPLETE (Suppliers ✅, Customers ✅, Warehouses ⏸️ Paused)
+   📊 Status: ✅ COMPLETE (Core Reference Data Stable)
    ⏱️  Timeline: Completed 2026-01-06
-   🔗 Depends on: Module 1
+   🔗 Foundation for: Inventory, Job Cards, and all operational modules
    
-   📝 Note: Customers module mirrors Suppliers pattern. Warehouses module intentionally paused due to API errors.
+   📝 Notes: 
+   - All three modules are stable and production-ready
+   - Reference data layer is complete and will not be modified during operational module development
+   - Warehouses are admin-managed reference data (intentionally simple, rarely changed)
+   - Warehouses represent logical stock segregation, not physical locations
+   - Core inventory logic assumes warehouses already exist
+   - Future work will build ON TOP of this foundation, not modify it
 
 📈 MODULE 6: REPORTING & ANALYTICS
    ├── Stock Reports
@@ -217,7 +232,7 @@ Overall Completion: ▓▓▓▓░░░░░░ 20%
 Phase 1 (Foundation):        ▓▓▓▓▓▓▓▓▓▓ 100% ✅ COMPLETE
 Phase 2 (Core Modules):      ░░░░░░░░░░  0%
 Phase 3 (Specialized):       ░░░░░░░░░░  0%
-Phase 4 (Data/Integration):  ▓▓░░░░░░░░ 20% (Suppliers ✅, Customers ✅, Warehouses ⏸️)
+Phase 4 (Data/Integration):  ▓▓▓▓▓▓▓▓▓▓ 100% ✅ COMPLETE (Core Reference Data)
 Phase 5 (Advanced):          ░░░░░░░░░░  0%
 Phase 6 (Future):            ░░░░░░░░░░  0%
 
@@ -243,20 +258,23 @@ Phase 6 (Future):            ░░░░░░░░░░  0%
                       IMMEDIATE NEXT STEPS
 ═══════════════════════════════════════════════════════════════════
 
-RIGHT NOW:
-  1. ✅ Copy comprehensive prompt to Cursor - DONE
-  2. ✅ Let Cursor implement Phase 1 (Admin/Permissions) - DONE
-  3. ✅ Test admin interface thoroughly - DONE
-  4. ✅ Verify all 70+ permissions are seeded - DONE
-  5. ✅ Create test users and assign permissions - DONE
-  6. ✅ Database recovery & stabilization - DONE
+CURRENT STATE:
+  1. ✅ Phase 1 (Admin/Permissions) - COMPLETE
+  2. ✅ Phase 4 (Core Reference Data) - COMPLETE
+     - ✅ Suppliers module - COMPLETE
+     - ✅ Customers module - COMPLETE (data imported)
+     - ✅ Warehouses module - COMPLETE (admin reference)
+  3. ✅ Database backed up externally
+  4. ✅ System stable and ready for Inventory Core development
 
-AFTER PHASE 1 COMPLETE:
-  1. Review and document what was built
-  2. Identify any issues or improvements
-  3. Plan Phase 2 (Inventory) implementation
-  4. Create Cursor prompt for Inventory module
-  5. Continue systematically through phases
+NEXT STEPS:
+  1. ✅ Core reference data layer is stable - DONE
+  2. ✅ Suppliers module complete and stable - DONE
+  3. ✅ Customers module complete and stable - DONE
+  4. ✅ Warehouses module complete and stable - DONE
+  5. ⏳ **NEXT PHASE: Inventory Core (Batch-driven)** - Begin implementation
+  6. ⏳ Create implementation plan for Inventory module
+  7. ⏳ Continue systematically through phases
 
 KEY PRINCIPLE:
   → Complete one phase fully before starting next

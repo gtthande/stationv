@@ -2,22 +2,23 @@
 
 This document provides a high‑level overview of the Station‑2100 architecture and current implementation status.
 
-## Current Phase: UI-First Scaffold
+## Current Phase: Core Reference Data Stable
 
-**Status:** Dashboard UI is complete with placeholder/mocked data. Backend services, database, and authentication are not yet implemented. All data displayed in charts and components is static dummy data for UI demonstration purposes only.
+**Status:** Core reference data modules are complete and stable. Database, API routes, and service layers are implemented for Suppliers, Customers, and Warehouses. These modules form the foundation for future inventory and operational modules.
 
 ### What's Implemented
 
 - ✅ **Frontend UI** – Next.js 14 App Router with React 18, Tailwind CSS, and shadcn UI
 - ✅ **Dashboard Layout** – AppShell with Sidebar and Topbar components
-- ✅ **Module Pages** – All module routes exist with placeholder content
-- ✅ **Charts** – Recharts integration for pie charts, line charts, and bar charts
+- ✅ **Database** – MySQL connected with Prisma ORM, schema applied
+- ✅ **API Routes** – RESTful API endpoints implemented for Suppliers, Customers, Warehouses
+- ✅ **Service Layer** – Business logic with RBAC checks for Suppliers, Customers, Warehouses
+- ✅ **RBAC Integration** – Permission checks enforced at service layer
+- ✅ **Core Reference Modules** – Suppliers, Customers, Warehouses (complete and stable)
 - ✅ **Theme System** – Light/dark mode toggle using next-themes
-- ✅ **Component Library** – Card, Button, and chart components
-- ⏳ **Database** – Schema defined in `sql/schema.sql` and `prisma/schema.prisma`, but not connected
-- ⏳ **API Routes** – Not implemented yet
-- ⏳ **Authentication** – Not implemented yet
-- ⏳ **RBAC** – Types and helpers exist in `lib/rbac.ts`, but not integrated
+- ✅ **Component Library** – Card, Button, chart components, and form components
+- ⏳ **Authentication** – NextAuth.js integration (planned)
+- ⏳ **Operational Modules** – Inventory, Job Cards, Rotables, Tools (planned)
 
 ## Architecture Layers
 
@@ -40,27 +41,59 @@ This document provides a high‑level overview of the Station‑2100 architectur
   - CSS variables for theme tokens
   - Responsive design with mobile-first approach
 
-### Backend (Planned)
+### Backend (Implemented)
 
-- **API / Services** – Will use Next.js API routes or Server Actions
-- **Database** – MySQL with Prisma ORM
-- **Authentication** – NextAuth.js
-- **RBAC** – Role-based access control with permission checks
+- **API / Services** – Next.js API routes with Server Actions pattern
+- **Database** – MySQL with Prisma ORM (connected and operational)
+- **Service Layer** – Business logic with RBAC checks (`lib/services/`)
+- **RBAC** – Permission checks enforced at service layer (`lib/rbac.ts`)
+- **Authentication** – NextAuth.js (planned for future phase)
 
-## Core Modules
+## Core Reference Modules
 
-Module implementation status:
+The foundation of Station-2100 consists of three stable reference data modules that are complete and production-ready:
 
-1. **Dashboard** – Overview with KPI cards and module summaries (UI only, mocked data)
-2. **Inventory** – Stock tracking and batch management (UI only, placeholder)
-3. **Job Cards** – Work order management (UI only, placeholder)
-4. **Rotables** – Serialized parts tracking (UI only, placeholder)
-5. **Tools** – Tool inventory management (UI only, placeholder)
-6. **Suppliers** – ✅ **COMPLETE** – Database, API routes, and Dashboard UI implemented
-7. **Customers** – Customer management (UI only, placeholder)
-8. **Reports** – Analytics and reporting (UI only, placeholder)
-9. **Admin** – User and role management (partial - users/permissions implemented)
-10. **Settings** – System configuration (UI only, placeholder)
+### ✅ Suppliers Module
+- **Status:** Complete and stable
+- **Access:** Admin-only (permission: `admin.manage_suppliers`)
+- **Features:** Full CRUD operations, active/inactive management
+- **Usage:** Referenced by inventory batches and procurement workflows
+- **Implementation:** Database schema, service layer, API routes, UI components, RBAC checks
+
+### ✅ Customers Module
+- **Status:** Complete and stable
+- **Access:** Admin-only (permission: `admin.manage_customers`)
+- **Features:** Full CRUD operations, imported historical data
+- **Usage:** Referenced by job cards and billing workflows
+- **Implementation:** Database schema, service layer, API routes, UI components, RBAC checks, data import completed
+
+### ✅ Warehouses Module (Admin Reference Data)
+- **Status:** Complete and stable
+- **Access:** Admin-only (no granular permissions required)
+- **Structure:** Simple (name + active flag only)
+- **Seeded Defaults:**
+  - Main Warehouse
+  - Consumables
+  - Owner Supplied
+- **Usage:** Referenced by inventory only (not transactional)
+- **Design Philosophy:** Intentionally minimal - 95% of installs never add more warehouses
+- **Implementation:** Database schema, service layer, API routes, admin UI, seed script
+- **Key Characteristics:**
+  - **Reference data, not operational entities** - Warehouses are logical stock segregation points, not physical locations
+  - **Admin-managed** - Only administrators can create or modify warehouses
+  - **Designed for stability** - Core inventory logic assumes warehouses already exist
+  - **Rarely changed** - Once configured, warehouses remain stable throughout system operation
+
+## Operational Modules (Planned)
+
+1. **Dashboard** – Overview with KPI cards and module summaries (UI scaffold complete)
+2. **Inventory** – Stock tracking and batch management (planned - depends on reference data)
+3. **Job Cards** – Work order management (planned - depends on Inventory)
+4. **Rotables** – Serialized parts tracking (planned)
+5. **Tools** – Tool inventory management (planned)
+6. **Reports** – Analytics and reporting (planned)
+7. **Admin** – User and role management (partial - users/permissions implemented)
+   - **Settings** – System configuration (Admin sub-module, RBAC protected, planned)
 
 ## Development Plan
 
@@ -82,18 +115,21 @@ Module implementation status:
 3. Add session middleware
 4. Protect dashboard routes
 
-### Phase 4: API & Services (In Progress)
+### Phase 4: API & Services (✅ Core Reference Complete)
 1. ✅ Create API routes for Suppliers module
-2. ✅ Implement data services with Prisma (Suppliers)
-3. ✅ Add RBAC checks using `lib/rbac.ts` (Suppliers)
-4. ⏳ Replace dummy data with real queries (other modules)
+2. ✅ Create API routes for Customers module
+3. ✅ Create API routes for Warehouses module
+4. ✅ Implement data services with Prisma (Suppliers, Customers, Warehouses)
+5. ✅ Add RBAC checks using `lib/rbac.ts` (all reference modules)
+6. ⏳ Implement for operational modules (Inventory, Job Cards, etc.)
 
-### Phase 5: Forms & Interactions (In Progress)
-1. ✅ Build form components (Suppliers)
-2. ✅ Implement CRUD operations (Suppliers)
-3. ✅ Add validation (Suppliers)
-4. ✅ Connect to API routes (Suppliers)
-5. ⏳ Implement for other modules
+### Phase 5: Forms & Interactions (✅ Core Reference Complete)
+1. ✅ Build form components (Suppliers, Customers, Warehouses)
+2. ✅ Implement CRUD operations (Suppliers, Customers, Warehouses)
+3. ✅ Add validation (all reference modules)
+4. ✅ Connect to API routes (all reference modules)
+5. ✅ Import customer data (completed)
+6. ⏳ Implement for operational modules
 
 ### Phase 6: Testing (Future)
 1. Unit tests for services
@@ -141,6 +177,90 @@ prisma/
 sql/
   schema.sql              # MySQL schema definition
 ```
+
+## Navigation Structure
+
+The application uses a hierarchical navigation structure:
+
+- **Top-level modules**: Dashboard, Inventory, Job Cards, Rotables, Tools, Suppliers, Customers, Reports, Admin
+- **Admin sub-modules**: Users, Permissions, Audit Logs, **Warehouses**, **Settings**
+
+**Note**: Warehouses and Settings are Admin configuration modules by design. They are accessed via the Admin navigation menu (`/admin/warehouses`), not as top-level operational modules. This reflects their role as system configuration features rather than day-to-day operational tools.
+
+## Core Reference Data Architecture
+
+### Design Principles
+
+The core reference modules (Suppliers, Customers, Warehouses) form a stable foundation layer:
+
+1. **Stability First** – These modules are complete and will not be modified during operational module development
+2. **Reference Only** – They provide master data for transactional modules (Inventory, Job Cards)
+3. **Admin-Controlled** – All reference data is managed by administrators
+4. **Simple Structure** – Minimal complexity ensures reliability and maintainability
+
+### Module Characteristics
+
+**Suppliers:**
+- Active CRUD operations
+- Used across inventory & procurement
+- Full traceability to batches and purchases
+
+**Customers:**
+- Imported and stable
+- Used in job cards & billing
+- Historical data preserved
+
+**Warehouses:**
+- Admin-only reference data (not operational entities)
+- Simple structure (name, active)
+- Seeded defaults (Main Warehouse, Consumables, Owner Supplied)
+- Rarely changed (95% of installs never add more)
+- Referenced by inventory only (not transactional)
+- **Purpose:** Logical stock segregation, not physical locations
+- **Design:** Intentionally minimal for stability and reliability
+- **Assumption:** Core inventory logic assumes warehouses already exist
+
+### Integration Pattern
+
+Future operational modules will **reference** but **not modify** core reference data:
+
+```
+Reference Data Layer (Stable)
+├── Suppliers (CRUD by Admin)
+├── Customers (CRUD by Admin)
+└── Warehouses (CRUD by Admin)
+
+Operational Modules (Future)
+├── Inventory → References: Suppliers, Warehouses
+├── Job Cards → References: Customers, Suppliers
+└── Rotables → References: Suppliers
+```
+
+This separation ensures reference data stability while allowing operational modules to evolve independently.
+
+### Warehouses: Reference Data Design Principles
+
+**Warehouses are reference data, not operational entities:**
+- Warehouses represent logical stock segregation points, not physical locations
+- They are used for organizing inventory batches and tracking stock by category
+- The system assumes warehouses exist before inventory operations begin
+
+**Warehouses are admin-managed:**
+- Only administrators can create, modify, or deactivate warehouses
+- No granular permissions required - admin access is sufficient
+- Changes are infrequent and controlled
+
+**Warehouses are designed to be stable:**
+- Simple structure (name + active flag) ensures reliability
+- Default warehouses cover 95% of use cases
+- Core inventory logic assumes warehouses already exist
+- No frequent changes expected during normal operations
+
+**Core inventory logic assumes warehouses already exist:**
+- When implementing inventory modules, warehouses are treated as pre-existing reference data
+- Inventory batches reference warehouses via foreign keys
+- No warehouse creation logic needed in inventory workflows
+- Warehouse selection is a simple dropdown from existing records
 
 ## Important Notes
 
