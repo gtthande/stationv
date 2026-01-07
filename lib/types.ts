@@ -189,3 +189,131 @@ export interface InventoryTransaction {
   created_at: string;
   updated_at: string;
 }
+
+// Inventory API Response Types (from vw_inventory_list)
+export interface InventoryListItem {
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  description: string | null;
+  unit_of_measure: string;
+  is_active: boolean;
+  total_received: number;
+  in_stock: number;
+  quarantine: number;
+  wip: number;
+  out: number;
+  withheld: number;
+  status: string;
+  batch_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Inventory Summary (from vw_inventory_part_totals)
+export interface InventorySummary {
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  description: string | null;
+  unit_of_measure: string;
+  total_received: number;
+  in_stock: number;
+  quarantine: number;
+  wip: number;
+  out: number;
+  withheld: number;
+  calculated_total: number;
+  balance_delta: number;
+}
+
+// Stock Card Batch (from vw_stock_card_batches)
+export interface StockCardBatch {
+  batch_id: string;
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  batch_code: string;
+  warehouse_id: string | null;
+  warehouse_name: string | null;
+  location_id: string | null;
+  supplier_id: string | null;
+  supplier_name: string | null;
+  supplier_code: string | null;
+  reference_doc: string | null;
+  received_quantity: number;
+  remaining_quantity: number;
+  currency: string | null;
+  fx_rate: number | null;
+  landed_cost_per_unit: number | null;
+  fitting_price_per_unit: number | null;
+  status: string;
+  expiry_date: string | null;
+  received_by: string | null;
+  approved_by: string | null;
+  received_at: string | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+  status_category: string;
+  quantity_issued: number;
+}
+
+// Stock Card WIP (from vw_stock_card_wip)
+export interface StockCardWIP {
+  job_card_part_id: string;
+  job_card_id: string;
+  job_number: string;
+  job_title: string;
+  job_status: string;
+  batch_id: string;
+  batch_code: string;
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  quantity: number;
+  unit_cost_local: number;
+  unit_price_local: number;
+  total_cost_local: number;
+  total_price_local: number;
+  source_type: string;
+  issued_by: string | null;
+  received_by: string | null;
+  issued_at: string;
+  opened_at: string | null;
+  customer_id: string | null;
+  customer_name: string | null;
+  aircraft_reg: string | null;
+}
+
+// Stock Card Movement (from vw_stock_card_movements)
+export interface StockCardMovement {
+  transaction_id: string;
+  batch_id: string;
+  batch_code: string;
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  transaction_type: string;
+  direction: string;
+  quantity: number;
+  unit_cost_local: number;
+  total_cost_local: number;
+  job_card_part_id: string | null;
+  job_card_id: string | null;
+  job_number: string | null;
+  job_title: string | null;
+  from_warehouse_id: string | null;
+  from_warehouse_name: string | null;
+  to_warehouse_id: string | null;
+  to_warehouse_name: string | null;
+  stock_adjustment_reason_id: string | null;
+  adjustment_reason_code: string | null;
+  adjustment_reason_description: string | null;
+  created_by: string;
+  approved_by: string | null;
+  transaction_status: string;
+  notes: string | null;
+  transaction_date: string;
+  created_at: string;
+}

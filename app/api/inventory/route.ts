@@ -52,6 +52,8 @@ export async function GET(request: NextRequest) {
       `
     );
 
+    console.log('[API] GET /api/inventory - Raw result count:', result?.length || 0);
+
     // Serialize dates and convert to consistent format
     const serialized = result.map((item) => ({
       product_id: String(item.product_id),
@@ -76,9 +78,16 @@ export async function GET(request: NextRequest) {
         : String(item.updated_at),
     }));
 
+    console.log('[API] GET /api/inventory - Serialized count:', serialized.length);
+
     return NextResponse.json(serialized, { status: 200 });
   } catch (error: any) {
     console.error('[API] GET /api/inventory - Error:', error);
+    console.error('[API] GET /api/inventory - Error details:', {
+      message: error.message,
+      code: error.code,
+      sqlState: error.sqlState,
+    });
     return NextResponse.json(
       { 
         error: 'Failed to fetch inventory list', 
