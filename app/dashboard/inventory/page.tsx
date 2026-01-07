@@ -22,11 +22,24 @@ async function fetchInventoryList(): Promise<InventoryListItem[]> {
     }
 
     const data = await res.json();
-    console.log('Inventory API returned:', Array.isArray(data) ? `${data.length} items` : 'non-array response');
+    console.log('Inventory API returned:', Array.isArray(data) ? `${data.length} parts` : 'non-array response');
     return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error fetching inventory list:', error);
+    console.error('Error fetching inventory batches:', error);
     return [];
+  }
+}
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return '—';
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return dateString;
   }
 }
 
@@ -45,7 +58,7 @@ function getStatusBadgeColor(status: string): string {
 }
 
 export default async function InventoryPage() {
-  const inventory = await fetchInventoryList();
+  const parts = await fetchInventoryList();
 
   return (
     <div className="space-y-6">
@@ -53,14 +66,14 @@ export default async function InventoryPage() {
       <div>
         <h1 className="text-3xl font-semibold">Inventory</h1>
         <p className="text-muted-foreground mt-1">
-          View and manage inventory items and stock levels
+          Phase 1: Batch-only inventory view
         </p>
       </div>
 
-      {/* Inventory Table */}
-      {inventory.length === 0 ? (
+      {/* Parts List Table */}
+      {parts.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          <p>No inventory items found</p>
+          <p>No parts found</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -73,26 +86,14 @@ export default async function InventoryPage() {
                 <th className="px-4 py-3 text-left text-sm font-semibold border-b border-border/30">
                   Product Name
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold border-b border-border/30">
-                  Description
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold border-b border-border/30">
-                  UOM
+                <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
+                  Total Received
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
                   In Stock
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
                   Quarantine
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
-                  WIP
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
-                  Out
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-semibold border-b border-border/30">
-                  Withheld
                 </th>
                 <th className="px-4 py-3 text-center text-sm font-semibold border-b border-border/30">
                   Status
@@ -103,52 +104,40 @@ export default async function InventoryPage() {
               </tr>
             </thead>
             <tbody>
-              {inventory.map((item) => (
+              {parts.map((part) => (
                 <tr
-                  key={item.product_id}
+                  key={part.product_id}
                   className="hover:bg-muted/30 transition-colors"
                 >
                   <td className="px-4 py-3 border-b border-border/30">
                     <Link
-                      href={`/dashboard/inventory/${encodeURIComponent(item.part_number)}`}
+                      href={`/dashboard/inventory/${encodeURIComponent(part.part_number)}`}
                       className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
                     >
-                      {item.part_number}
+                      {part.part_number}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 border-b border-border/30 font-medium">
-                    {item.product_name}
-                  </td>
-                  <td className="px-4 py-3 border-b border-border/30 text-sm text-muted-foreground">
-                    {item.description || <span className="text-muted-foreground/50">—</span>}
-                  </td>
-                  <td className="px-4 py-3 border-b border-border/30 text-sm">
-                    {item.unit_of_measure}
+                  <td className="px-4 py-3 border-b border-border/30">
+                    {part.product_name}
                   </td>
                   <td className="px-4 py-3 border-b border-border/30 text-right">
-                    {item.in_stock.toLocaleString()}
+                    {part.total_received.toLocaleString()} {part.unit_of_measure}
                   </td>
                   <td className="px-4 py-3 border-b border-border/30 text-right">
-                    {item.quarantine.toLocaleString()}
+                    {part.in_stock.toLocaleString()} {part.unit_of_measure}
                   </td>
                   <td className="px-4 py-3 border-b border-border/30 text-right">
-                    {item.wip.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 border-b border-border/30 text-right">
-                    {item.out.toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 border-b border-border/30 text-right">
-                    {item.withheld.toLocaleString()}
+                    {part.quarantine.toLocaleString()} {part.unit_of_measure}
                   </td>
                   <td className="px-4 py-3 border-b border-border/30 text-center">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeColor(item.status)}`}
+                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeColor(part.status)}`}
                     >
-                      {item.status}
+                      {part.status}
                     </span>
                   </td>
                   <td className="px-4 py-3 border-b border-border/30 text-center">
-                    {item.batch_count}
+                    {part.batch_count}
                   </td>
                 </tr>
               ))}

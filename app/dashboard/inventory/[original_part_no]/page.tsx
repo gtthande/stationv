@@ -212,7 +212,7 @@ export default async function StockCardPage({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -245,53 +245,7 @@ export default async function StockCardPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              WIP
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">
-              {summary.wip.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {summary.unit_of_measure}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Out
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">
-              {summary.out.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {summary.unit_of_measure}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Withheld
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">
-              {summary.withheld.toLocaleString()}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {summary.unit_of_measure}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Phase 1: WIP, Out, Withheld cards hidden (always 0) */}
       </div>
 
       {/* Batch Breakdown Table */}
@@ -302,7 +256,8 @@ export default async function StockCardPage({
         <CardContent>
           {batches.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No batches found
+              <p>No batches found for this part.</p>
+              <p className="text-sm mt-2">Batches will appear here once stock is received.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -376,8 +331,8 @@ export default async function StockCardPage({
         </CardContent>
       </Card>
 
-      {/* WIP Allocations Table - Only show if WIP rows exist */}
-      {wip.length > 0 && (
+      {/* WIP Allocations Table - Phase 1: Hidden (no WIP data yet) */}
+      {false && wip.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>WIP Allocations (Open Jobs Only)</CardTitle>
@@ -460,17 +415,13 @@ export default async function StockCardPage({
         </Card>
       )}
 
-      {/* Movements / Ledger Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Movements (Latest 20)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {movements.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No movements found
-            </div>
-          ) : (
+      {/* Movements / Ledger Table - Phase 1: Hidden (no transaction data yet) */}
+      {false && movements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Movements (Latest 20)</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead>
@@ -556,9 +507,9 @@ export default async function StockCardPage({
                 </tbody>
               </table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

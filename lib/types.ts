@@ -210,6 +210,31 @@ export interface InventoryListItem {
   updated_at: string;
 }
 
+// Phase 1: Batch-only inventory row (from vw_inventory_batches_phase1)
+export interface InventoryBatchRow {
+  batch_id: string;
+  batch_code: string;
+  product_id: string;
+  part_number: string;
+  product_name: string;
+  product_description: string | null;
+  unit_of_measure: string;
+  supplier_id: string | null;
+  supplier_name: string | null;
+  supplier_code: string | null;
+  warehouse_id: string | null;
+  warehouse_name: string | null;
+  location_id: string | null;
+  bin_code: string | null;
+  received_quantity: number;
+  remaining_quantity: number;
+  status: string;
+  received_at: string | null;
+  expiry_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Inventory Summary (from vw_inventory_part_totals)
 export interface InventorySummary {
   product_id: string;

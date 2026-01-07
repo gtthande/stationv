@@ -4,25 +4,24 @@ import { Prisma } from '@prisma/client';
 
 /**
  * GET /api/inventory
- * List all inventory items from vw_inventory_list
+ * Phase 1: List all parts from vw_inventory_list (one row per part with totals)
  * 
- * Returns: Array of inventory items with totals and status
+ * Returns: Array of inventory list rows (one per part)
  */
 export async function GET(request: NextRequest) {
   try {
-    // Query the view directly - it already filters for active products
+    // Query the Phase 1 view - returns one row per part with totals
     const result = await prisma.$queryRaw<Array<{
       product_id: string | number;
       part_number: string;
       product_name: string;
       description: string | null;
       unit_of_measure: string;
-      is_active: number | boolean;
       total_received: number;
       in_stock: number;
       quarantine: number;
       wip: number;
-      out: number;
+      out_qty: number;
       withheld: number;
       status: string;
       batch_count: number;
@@ -36,19 +35,18 @@ export async function GET(request: NextRequest) {
           product_name,
           description,
           unit_of_measure,
-          is_active,
           total_received,
           in_stock,
           quarantine,
           wip,
-          out,
+          out_qty,
           withheld,
           status,
           batch_count,
           created_at,
           updated_at
         FROM vw_inventory_list
-        ORDER BY part_number ASC
+        ORDER BY product_name ASC, part_number ASC
       `
     );
 
@@ -61,12 +59,11 @@ export async function GET(request: NextRequest) {
       product_name: item.product_name,
       description: item.description,
       unit_of_measure: item.unit_of_measure,
-      is_active: Boolean(item.is_active),
       total_received: Number(item.total_received),
       in_stock: Number(item.in_stock),
       quarantine: Number(item.quarantine),
       wip: Number(item.wip),
-      out: Number(item.out),
+      out: Number(item.out_qty),
       withheld: Number(item.withheld),
       status: item.status,
       batch_count: Number(item.batch_count),
@@ -90,7 +87,7 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(
       { 
-        error: 'Failed to fetch inventory list', 
+        error: 'Failed to fetch inventory batches', 
         message: error.message 
       },
       { status: 500 }

@@ -4,9 +4,9 @@ import { Prisma } from '@prisma/client';
 
 /**
  * GET /api/inventory/[original_part_no]/summary
- * Get inventory summary totals for a specific part from vw_inventory_part_totals
+ * Get inventory summary totals for a specific part (Phase 1: batch-only)
  * 
- * Returns: Summary totals (total_received, in_stock, quarantine, wip, out, withheld, etc.)
+ * Returns: Summary totals calculated from batches directly
  */
 export async function GET(
   request: NextRequest,
@@ -15,7 +15,7 @@ export async function GET(
   try {
     const { original_part_no } = params;
 
-    // Query the view with parameterized query
+    // Query from vw_inventory_list view (Phase 1: batch-only)
     const result = await prisma.$queryRaw<Array<{
       product_id: string | number;
       part_number: string;
@@ -26,10 +26,10 @@ export async function GET(
       in_stock: number;
       quarantine: number;
       wip: number;
-      out: number;
+      out_qty: number;
       withheld: number;
-      calculated_total: number;
-      balance_delta: number;
+      status: string;
+      batch_count: number;
     }>>(
       Prisma.sql`
         SELECT 
@@ -42,11 +42,11 @@ export async function GET(
           in_stock,
           quarantine,
           wip,
-          out,
+          out_qty,
           withheld,
-          calculated_total,
-          balance_delta
-        FROM vw_inventory_part_totals
+          status,
+          batch_count
+        FROM vw_inventory_list
         WHERE part_number = ${original_part_no}
         LIMIT 1
       `
@@ -65,7 +65,7 @@ export async function GET(
 
     const item = result[0];
 
-    // Serialize the result
+    // Serialize the result (Phase 1: WIP, Out, Withheld are always 0)
     const serialized = {
       product_id: String(item.product_id),
       part_number: item.part_number,
@@ -75,11 +75,11 @@ export async function GET(
       total_received: Number(item.total_received),
       in_stock: Number(item.in_stock),
       quarantine: Number(item.quarantine),
-      wip: Number(item.wip),
-      out: Number(item.out),
-      withheld: Number(item.withheld),
-      calculated_total: Number(item.calculated_total),
-      balance_delta: Number(item.balance_delta),
+      wip: Number(item.wip), // Phase 1: Always 0
+      out: Number(item.out_qty), // Phase 1: Always 0
+      withheld: Number(item.withheld), // Phase 1: Always 0
+      calculated_total: Number(item.in_stock) + Number(item.quarantine), // Phase 1: Simple total
+      balance_delta: 0, // Phase 1: No balance tracking yet
     };
 
     return NextResponse.json(serialized, { status: 200 });

@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 
 /**
  * GET /api/inventory/[original_part_no]/movements
- * Get transaction movements for a specific part from vw_stock_card_movements
+ * Get transaction movements for a specific part (Phase 1: always returns empty)
  * 
- * Returns: Array of movements (latest 20, ordered by transaction_date DESC)
+ * Returns: Empty array (Phase 1: No inventory transactions)
  */
 export async function GET(
+  request: NextRequest,
+  { params }: { params: { original_part_no: string } }
+) {
+  try {
+    // Phase 1: No inventory transactions - always return empty array
+    return NextResponse.json([], { status: 200 });
+  } catch (error: any) {
+    console.error('[API] GET /api/inventory/[original_part_no]/movements - Error:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch movements', 
+        message: error.message 
+      },
+      { status: 500 }
+    );
+  }
+}
+export async function GET_OLD(
   request: NextRequest,
   { params }: { params: { original_part_no: string } }
 ) {

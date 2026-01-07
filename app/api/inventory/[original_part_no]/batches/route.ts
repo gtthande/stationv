@@ -15,13 +15,13 @@ export async function GET(
   try {
     const { original_part_no } = params;
 
-    // Query the view with parameterized query, ordered by received_at ASC (FIFO)
+    // Query the view with parameterized query, ordered by received_date ASC (FIFO)
     const result = await prisma.$queryRaw<Array<{
       batch_id: string | number;
       product_id: string | number;
       part_number: string;
       product_name: string;
-      batch_code: string;
+      batch_no: string;
       warehouse_id: string | number | null;
       warehouse_name: string | null;
       location_id: string | number | null;
@@ -29,18 +29,15 @@ export async function GET(
       supplier_name: string | null;
       supplier_code: string | null;
       reference_doc: string | null;
-      received_quantity: number;
-      remaining_quantity: number;
+      quantity_received: number;
+      quantity_remaining: number;
       currency: string | null;
       fx_rate: number | null;
       landed_cost_per_unit: number | null;
       fitting_price_per_unit: number | null;
       status: string;
       expiry_date: Date | string | null;
-      received_by: string | number | null;
-      approved_by: string | number | null;
-      received_at: Date | string | null;
-      approved_at: Date | string | null;
+      received_date: Date | string | null;
       created_at: Date | string;
       updated_at: Date | string;
       status_category: string;
@@ -52,7 +49,7 @@ export async function GET(
           product_id,
           part_number,
           product_name,
-          batch_code,
+          batch_no,
           warehouse_id,
           warehouse_name,
           location_id,
@@ -60,25 +57,22 @@ export async function GET(
           supplier_name,
           supplier_code,
           reference_doc,
-          received_quantity,
-          remaining_quantity,
+          quantity_received,
+          quantity_remaining,
           currency,
           fx_rate,
           landed_cost_per_unit,
           fitting_price_per_unit,
           status,
           expiry_date,
-          received_by,
-          approved_by,
-          received_at,
-          approved_at,
+          received_date,
           created_at,
           updated_at,
           status_category,
           quantity_issued
         FROM vw_stock_card_batches
         WHERE part_number = ${original_part_no}
-        ORDER BY received_at ASC
+        ORDER BY received_date ASC
       `
     );
 
@@ -93,7 +87,7 @@ export async function GET(
       product_id: String(item.product_id),
       part_number: item.part_number,
       product_name: item.product_name,
-      batch_code: item.batch_code,
+      batch_code: item.batch_no, // Map batch_no to batch_code for UI compatibility
       warehouse_id: item.warehouse_id ? String(item.warehouse_id) : null,
       warehouse_name: item.warehouse_name,
       location_id: item.location_id ? String(item.location_id) : null,
@@ -101,8 +95,8 @@ export async function GET(
       supplier_name: item.supplier_name,
       supplier_code: item.supplier_code,
       reference_doc: item.reference_doc,
-      received_quantity: Number(item.received_quantity),
-      remaining_quantity: Number(item.remaining_quantity),
+      received_quantity: Number(item.quantity_received),
+      remaining_quantity: Number(item.quantity_remaining),
       currency: item.currency,
       fx_rate: item.fx_rate ? Number(item.fx_rate) : null,
       landed_cost_per_unit: item.landed_cost_per_unit ? Number(item.landed_cost_per_unit) : null,
@@ -113,18 +107,14 @@ export async function GET(
             ? item.expiry_date.toISOString().split('T')[0] 
             : String(item.expiry_date).split('T')[0])
         : null,
-      received_by: item.received_by ? String(item.received_by) : null,
-      approved_by: item.approved_by ? String(item.approved_by) : null,
-      received_at: item.received_at 
-        ? (item.received_at instanceof Date 
-            ? item.received_at.toISOString() 
-            : String(item.received_at))
+      received_by: null, // Not in view for Phase 1
+      approved_by: null, // Not in view for Phase 1
+      received_at: item.received_date 
+        ? (item.received_date instanceof Date 
+            ? item.received_date.toISOString() 
+            : String(item.received_date))
         : null,
-      approved_at: item.approved_at 
-        ? (item.approved_at instanceof Date 
-            ? item.approved_at.toISOString() 
-            : String(item.approved_at))
-        : null,
+      approved_at: null, // Not in view for Phase 1
       created_at: item.created_at instanceof Date 
         ? item.created_at.toISOString() 
         : String(item.created_at),
